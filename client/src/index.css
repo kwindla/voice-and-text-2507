@@ -1,1 +1,5 @@
-/* Custom styles can go here */
+@import "@pipecat-ai/voice-ui-kit/styles.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
