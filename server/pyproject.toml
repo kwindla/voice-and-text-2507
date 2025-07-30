@@ -1,0 +1,21 @@
+[tool.uv]
+override-dependencies = ["numba==0.61.2"]
+
+
+[project]
+name = "server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "loguru",
+    "pipecat-ai[cartesia,daily,deepgram,openai,silero,webrtc]>=0.0.76",
+    "pydantic",
+    "python-dotenv",
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
+    "uvicorn[standard]",
+    "websockets",
+]
