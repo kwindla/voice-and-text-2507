@@ -16,6 +16,7 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
+from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
 from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
@@ -54,6 +55,9 @@ async def bot(session_args):
         webrtc_connection=webrtc_connection,
         params=transport_params,
     )
+    
+    # Create RTVI processor with config
+    rtvi = RTVIProcessor(config=RTVIConfig(config=[]))
 
     # Initialize STT service
     stt = DeepgramSTTService(
@@ -94,6 +98,7 @@ async def bot(session_args):
     pipeline = Pipeline([
         transport.input(),
         stt,
+        rtvi,  # Add RTVI processor for transcription events
         context_aggregator.user(),
         llm,
         tts,
@@ -101,7 +106,7 @@ async def bot(session_args):
         context_aggregator.assistant(),
     ])
 
-    # Create task
+    # Create task with RTVI observer
     task = PipelineTask(
         pipeline,
         params=PipelineParams(
@@ -109,14 +114,19 @@ async def bot(session_args):
             enable_metrics=True,
             enable_usage_metrics=True,
         ),
+        observers=[RTVIObserver(rtvi)],
     )
+
+    @rtvi.event_handler("on_client_ready")
+    async def on_client_ready(rtvi):
+        await rtvi.set_bot_ready()
+        # Kick off the conversation
+        await task.queue_frames([context_aggregator.user().get_context_frame()])
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
         """Handle new connection."""
         logger.info("Client connected")
-        # Send initial greeting
-        await task.queue_frames([context_aggregator.user().get_context_frame()])
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
