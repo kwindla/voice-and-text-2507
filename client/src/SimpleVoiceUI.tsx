@@ -1,11 +1,24 @@
 import { useState, useEffect, useRef } from "react";
-import { AudioClientHelper, TranscriptOverlay } from "@pipecat-ai/voice-ui-kit";
-import { usePipecatClient, usePipecatClientTransportState, useRTVIClientEvent } from "@pipecat-ai/client-react";
+import { AudioClientHelper } from "@pipecat-ai/voice-ui-kit";
+import { usePipecatClient, usePipecatClientTransportState, usePipecatClientMicControl } from "@pipecat-ai/client-react";
 
 interface RTVIEvent {
   id: string;
   type: string;
   data: any;
+  timestamp: Date;
+}
+
+interface TranscriptChunk {
+  id: string;
+  text: string;
+  final: boolean;
+}
+
+interface TranscriptMessage {
+  id: string;
+  role: "user" | "bot";
+  chunks: TranscriptChunk[];
   timestamp: Date;
 }
 
@@ -19,14 +32,16 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   const [inputText, setInputText] = useState("");
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>("");
   const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [rtviEvents, setRtviEvents] = useState<RTVIEvent[]>([]);
+  const [transcriptMessages, setTranscriptMessages] = useState<TranscriptMessage[]>([]);
   const eventsEndRef = useRef<HTMLDivElement>(null);
+  const transcriptEndRef = useRef<HTMLDivElement>(null);
   
   const client = usePipecatClient();
   const transportState = usePipecatClientTransportState();
+  const { enableMic, isMicEnabled } = usePipecatClientMicControl();
 
   // Get available microphone devices
   useEffect(() => {
@@ -55,47 +70,13 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
     eventsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [rtviEvents]);
 
-  // Set up event listeners when client is ready
+  // Auto-scroll to bottom when new transcript messages arrive
   useEffect(() => {
-    if (!client) return;
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [transcriptMessages]);
 
-    const handleBotStartedSpeaking = () => {
-      console.log("Bot started speaking");
-      setIsBotSpeaking(true);
-      setIsUserSpeaking(false);
-    };
-    
-    const handleBotStoppedSpeaking = () => {
-      console.log("Bot stopped speaking");
-      setIsBotSpeaking(false);
-    };
-    
-    const handleUserStartedSpeaking = () => {
-      console.log("User started speaking");
-      setIsUserSpeaking(true);
-      setIsBotSpeaking(false);
-    };
-    
-    const handleUserStoppedSpeaking = () => {
-      console.log("User stopped speaking");
-      setIsUserSpeaking(false);
-    };
 
-    // Subscribe to events
-    client.on("botStartedSpeaking", handleBotStartedSpeaking);
-    client.on("botStoppedSpeaking", handleBotStoppedSpeaking);
-    client.on("userStartedSpeaking", handleUserStartedSpeaking);
-    client.on("userStoppedSpeaking", handleUserStoppedSpeaking);
-
-    return () => {
-      client.off("botStartedSpeaking", handleBotStartedSpeaking);
-      client.off("botStoppedSpeaking", handleBotStoppedSpeaking);
-      client.off("userStartedSpeaking", handleUserStartedSpeaking);
-      client.off("userStoppedSpeaking", handleUserStoppedSpeaking);
-    };
-  }, [client]);
-
-  // Listen to client events and messages
+  // Listen to ALL RTVI events
   useEffect(() => {
     if (!client) return;
 
@@ -109,51 +90,205 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
       setRtviEvents(prev => [...prev.slice(-99), newEvent]); // Keep last 100 events
     };
 
-    // Handle various client events
-    const handleTranscript = (data: any) => {
-      handleRTVIEvent('transcript', data);
-    };
-    
-    const handleMessage = (message: any) => {
-      handleRTVIEvent('message', message);
-    };
-    
-    const handleError = (error: any) => {
-      handleRTVIEvent('error', error);
+    // List of all RTVI events from the RTVIEvent enum
+    const rtviEventHandlers = {
+      // Connection events
+      connected: () => handleRTVIEvent('connected', {}),
+      disconnected: () => handleRTVIEvent('disconnected', {}),
+      transportStateChanged: (state: any) => handleRTVIEvent('transportStateChanged', state),
+      
+      // Bot events
+      botReady: (data: any) => handleRTVIEvent('botReady', data),
+      botDisconnected: (participant: any) => handleRTVIEvent('botDisconnected', participant),
+      error: (message: any) => handleRTVIEvent('error', message),
+      
+      // Server messaging
+      serverMessage: (data: any) => handleRTVIEvent('serverMessage', data),
+      serverResponse: (data: any) => handleRTVIEvent('serverResponse', data),
+      appendToContextResult: (data: any) => handleRTVIEvent('appendToContextResult', data),
+      
+      // Transcription events
+      userTranscript: (data: any) => {
+        handleRTVIEvent('userTranscript', data);
+        if (data?.text) {
+          setTranscriptMessages(prev => {
+            const chunkId = Date.now().toString() + Math.random();
+            const newChunk: TranscriptChunk = {
+              id: chunkId,
+              text: data.text,
+              final: data.final || false,
+            };
+
+            if (prev.length === 0 || prev[prev.length - 1].role !== 'user') {
+              // Create new user message
+              return [...prev, {
+                id: Date.now().toString() + Math.random(),
+                role: 'user',
+                chunks: [newChunk],
+                timestamp: new Date(),
+              }];
+            }
+            
+            // Update existing user message
+            const updated = [...prev];
+            const lastMessage = updated[updated.length - 1];
+            const updatedChunks = [...lastMessage.chunks];
+            
+            // Find if there's a non-final chunk to replace
+            const nonFinalIndex = updatedChunks.findIndex(chunk => !chunk.final);
+            
+            if (nonFinalIndex !== -1) {
+              // Replace the non-final chunk
+              updatedChunks[nonFinalIndex] = newChunk;
+            } else {
+              // All chunks are final, add new chunk
+              updatedChunks.push(newChunk);
+            }
+            
+            updated[updated.length - 1] = {
+              ...lastMessage,
+              chunks: updatedChunks,
+            };
+            
+            return updated;
+          });
+        }
+      },
+      botTranscript: (data: any) => {
+        handleRTVIEvent('botTranscript', data);
+        // We're using botTTSText for real-time rendering instead
+      },
+      transcript: (data: any) => handleRTVIEvent('transcript', data),
+      
+      // Speaking events
+      userStartedSpeaking: () => {
+        handleRTVIEvent('userStartedSpeaking', {});
+        setIsUserSpeaking(true);
+        setIsBotSpeaking(false);
+      },
+      userStoppedSpeaking: () => {
+        handleRTVIEvent('userStoppedSpeaking', {});
+        setIsUserSpeaking(false);
+      },
+      botStartedSpeaking: () => {
+        handleRTVIEvent('botStartedSpeaking', {});
+        setIsBotSpeaking(true);
+        setIsUserSpeaking(false);
+      },
+      botStoppedSpeaking: () => {
+        handleRTVIEvent('botStoppedSpeaking', {});
+        setIsBotSpeaking(false);
+      },
+      
+      // LLM events
+      userLLMText: (data: any) => handleRTVIEvent('userLLMText', data),
+      botLLMText: (data: any) => handleRTVIEvent('botLLMText', data),
+      botLLMStarted: (data: any) => handleRTVIEvent('botLLMStarted', data),
+      botLLMStopped: (data: any) => handleRTVIEvent('botLLMStopped', data),
+      llmFunctionCall: (data: any) => handleRTVIEvent('llmFunctionCall', data),
+      llmFunctionCallResult: (data: any) => handleRTVIEvent('llmFunctionCallResult', data),
+      botLLMSearchResponse: (data: any) => handleRTVIEvent('botLLMSearchResponse', data),
+      
+      // TTS events
+      botTtsText: (data: any) => {
+        handleRTVIEvent('botTtsText', data);
+        // Update bot message with word-by-word text as it's spoken
+        if (data?.text) {
+          setTranscriptMessages(prev => {
+            const chunkId = Date.now().toString() + Math.random();
+            const newChunk: TranscriptChunk = {
+              id: chunkId,
+              text: data.text,
+              final: false,  // TTS text chunks are not final until TTS stops
+            };
+
+            if (prev.length === 0 || prev[prev.length - 1].role !== 'bot') {
+              // Create new bot message
+              return [...prev, {
+                id: Date.now().toString() + Math.random(),
+                role: 'bot',
+                chunks: [newChunk],
+                timestamp: new Date(),
+              }];
+            }
+            
+            // Update existing bot message
+            const updated = [...prev];
+            const lastMessage = updated[updated.length - 1];
+            
+            // For bot messages, always append (don't replace)
+            updated[updated.length - 1] = {
+              ...lastMessage,
+              chunks: [...lastMessage.chunks, newChunk],
+            };
+            
+            return updated;
+          });
+        }
+      },
+      botTtsStarted: (data: any) => {
+        handleRTVIEvent('botTtsStarted', data);
+        // Could use this to show typing indicator or prepare for new bot message
+      },
+      botTtsStopped: (data: any) => {
+        handleRTVIEvent('botTtsStopped', data);
+        // Mark all bot chunks as final when TTS stops
+        setTranscriptMessages(prev => {
+          if (prev.length > 0 && prev[prev.length - 1].role === 'bot') {
+            const updated = [...prev];
+            const lastMessage = updated[updated.length - 1];
+            
+            // Mark all chunks as final
+            updated[updated.length - 1] = {
+              ...lastMessage,
+              chunks: lastMessage.chunks.map(chunk => ({ ...chunk, final: true })),
+            };
+            
+            return updated;
+          }
+          return prev;
+        });
+      },
+      
+      // Metrics
+      metrics: (data: any) => handleRTVIEvent('metrics', data),
+      messageError: (message: any) => handleRTVIEvent('messageError', message),
+      
+      // Participant events
+      participantJoined: (participant: any) => handleRTVIEvent('participantJoined', participant),
+      participantLeft: (participant: any) => handleRTVIEvent('participantLeft', participant),
+      
+      // Track events
+      trackStarted: (data: any) => handleRTVIEvent('trackStarted', data),
+      trackStopped: (data: any) => handleRTVIEvent('trackStopped', data),
+      
+      // Message for generic events
+      message: (message: any) => handleRTVIEvent('message', message),
     };
 
-    const handleConnected = () => {
-      handleRTVIEvent('connected', {});
-    };
-
-    const handleDisconnected = () => {
-      handleRTVIEvent('disconnected', {});
-    };
-
-    // Subscribe to events
-    client.on("transcript", handleTranscript);
-    client.on("message", handleMessage);
-    client.on("error", handleError);
-    client.on("connected", handleConnected);
-    client.on("disconnected", handleDisconnected);
+    // Subscribe to all events
+    Object.entries(rtviEventHandlers).forEach(([event, handler]) => {
+      try {
+        client.on(event as any, handler as any);
+      } catch (e) {
+        console.debug(`Could not subscribe to event: ${event}`);
+      }
+    });
 
     return () => {
-      client.off("transcript", handleTranscript);
-      client.off("message", handleMessage);
-      client.off("error", handleError);
-      client.off("connected", handleConnected);
-      client.off("disconnected", handleDisconnected);
+      // Unsubscribe from all events
+      Object.entries(rtviEventHandlers).forEach(([event, handler]) => {
+        try {
+          client.off(event as any, handler as any);
+        } catch (e) {
+          console.debug(`Could not unsubscribe from event: ${event}`);
+        }
+      });
     };
   }, [client]);
 
   const handleToggleMute = () => {
-    if (client) {
-      const newMutedState = !isMuted;
-      if (client.setMicEnabled) {
-        client.setMicEnabled(!newMutedState);
-      }
-      setIsMuted(newMutedState);
-    }
+    enableMic(!isMicEnabled);
   };
 
   const handleMicrophoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -218,12 +353,48 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
       {/* Main Content */}
       <main className="flex-1 max-w-6xl mx-auto w-full p-4 flex flex-col">
         {/* Transcript Area */}
-        <div className="flex-1 bg-gray-800 rounded-lg p-4 mb-4 overflow-y-auto flex items-center justify-center">
-          {transportState === "ready" ? (
-            <TranscriptOverlay participant="both" className="w-full max-w-2xl" />
-          ) : (
+        <div className="flex-1 bg-gray-800 rounded-lg p-4 mb-4 overflow-y-auto">
+          {transcriptMessages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               Start a conversation by clicking the button below
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {transcriptMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-[70%] rounded-lg p-4 ${
+                      message.role === 'user'
+                        ? 'bg-blue-900/50 border border-blue-700'
+                        : 'bg-gray-700 border border-gray-600'
+                    }`}
+                  >
+                    <div className={`text-xs font-medium mb-1 ${
+                      message.role === 'user' ? 'text-blue-400' : 'text-green-400'
+                    }`}>
+                      {message.role === 'user' ? 'User' : 'Bot'}
+                    </div>
+                    <div className={`text-sm ${
+                      message.role === 'user' ? 'text-blue-100' : 'text-gray-100'
+                    }`}>
+                      {message.chunks.map((chunk, index) => (
+                        <span key={chunk.id} className={
+                          message.role === 'user' && !chunk.final ? 'italic opacity-70' : ''
+                        }>
+                          {chunk.text}
+                          {index < message.chunks.length - 1 ? ' ' : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div ref={transcriptEndRef} />
             </div>
           )}
         </div>
@@ -242,8 +413,8 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
                   <span className="text-blue-400">{event.type}</span>:
                   {" "}
                   <span className="text-gray-300">
-                    {JSON.stringify(event.data).slice(0, 100)}
-                    {JSON.stringify(event.data).length > 100 ? "..." : ""}
+                    {event.data ? JSON.stringify(event.data).slice(0, 100) : "{}"}
+                    {event.data && JSON.stringify(event.data).length > 100 ? "..." : ""}
                   </span>
                 </div>
               ))
@@ -287,12 +458,12 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 !isConnected
                   ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                  : isMuted
+                  : !isMicEnabled
                   ? "bg-red-600 hover:bg-red-700 text-white"
                   : "bg-gray-700 hover:bg-gray-600 text-gray-100"
               }`}
             >
-              {isMuted ? "Unmute" : "Mute"}
+              {!isMicEnabled ? "Unmute" : "Mute"}
             </button>
           </div>
 
