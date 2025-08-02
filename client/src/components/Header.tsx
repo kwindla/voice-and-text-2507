@@ -4,9 +4,10 @@ import { usePipecatClientTransportState, useRTVIClientEvent } from "@pipecat-ai/
 
 interface HeaderProps {
   title?: string;
+  error?: boolean;
 }
 
-export function Header({ title = "ᓚᘏᗢ Pipecat" }: HeaderProps) {
+export function Header({ title = "ᓚᘏᗢ Pipecat", error }: HeaderProps) {
   const transportState = usePipecatClientTransportState();
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
@@ -71,8 +72,8 @@ export function Header({ title = "ᓚᘏᗢ Pipecat" }: HeaderProps) {
     const isConnecting = transportState === "connecting" || transportState === "initializing";
     
     return {
-      color: isConnected ? "bg-green-500" : isConnecting ? "bg-yellow-500" : "bg-gray-600",
-      text: isConnected ? "Connected" : isConnecting ? "Connecting..." : "Disconnected"
+      color: isConnected ? "bg-green-500" : isConnecting ? "bg-yellow-500" : error ? "bg-red-500" : "bg-gray-600",
+      text: isConnected ? "Connected" : isConnecting ? "Connecting..." : error ? "Error" : "Disconnected"
     };
   };
 

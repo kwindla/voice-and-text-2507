@@ -24,9 +24,18 @@ export function EventsPanel() {
   const transportState = usePipecatClientTransportState();
   const previousTransportState = useRef(transportState);
 
-  // Clear events when connection is established
+  // Debug mounting/unmounting
   useEffect(() => {
-    if (previousTransportState.current !== "ready" && transportState === "ready") {
+    console.log('EventsPanel mounted');
+    return () => console.log('EventsPanel unmounted');
+  }, []);
+
+  // Clear events when starting a new connection (not when it becomes ready)
+  useEffect(() => {
+    console.log('Transport state changed:', previousTransportState.current, '->', transportState);
+    // Clear when we start connecting from a disconnected state
+    if (previousTransportState.current === "disconnected" && transportState === "initializing") {
+      console.log('Clearing events because starting new connection');
       setEvents([]);
       setExpandedGroups(new Set());
     }

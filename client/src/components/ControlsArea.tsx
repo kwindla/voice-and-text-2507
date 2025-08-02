@@ -10,6 +10,7 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>("");
   const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [inputText, setInputText] = useState("");
+  const [isSending, setIsSending] = useState(false);
   
   const client = usePipecatClient();
   const transportState = usePipecatClientTransportState();
@@ -59,6 +60,35 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!client || !isConnected || !inputText.trim() || isSending) return;
+    
+    const message = inputText.trim();
+    setInputText("");
+    setIsSending(true);
+    
+    try {
+      // Send the message to the bot
+      console.log('Sending message to bot:', message);
+      client.sendClientMessage('custom-message', { text: message });
+      
+      // You could also use sendClientRequest to wait for a response:
+      // const response = await client.sendClientRequest('custom-message', { text: message }, 5000);
+      // console.log('Bot response:', response);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-4 space-y-4">
       {/* Microphone Controls */}
@@ -102,15 +132,21 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Type a message... (not yet implemented)"
+          onKeyPress={handleKeyPress}
+          placeholder={isConnected ? "Type a message to send to the bot..." : "Connect to send messages"}
           className="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          disabled
+          disabled={!isConnected || isSending}
         />
         <button
-          disabled
-          className="bg-gray-700 text-gray-400 px-6 py-2 rounded-lg cursor-not-allowed opacity-50"
+          onClick={handleSendMessage}
+          disabled={!isConnected || !inputText.trim() || isSending}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            !isConnected || !inputText.trim() || isSending
+              ? "bg-gray-700 text-gray-400 cursor-not-allowed opacity-50"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+          }`}
         >
-          Send
+          {isSending ? "Sending..." : "Send"}
         </button>
       </div>
 

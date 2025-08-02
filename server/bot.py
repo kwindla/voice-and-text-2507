@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.frames.frames import TranscriptionFrame, StartInterruptionFrame, StopInterruptionFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -122,6 +123,37 @@ async def bot(session_args):
         await rtvi.set_bot_ready()
         # Kick off the conversation
         await task.queue_frames([context_aggregator.user().get_context_frame()])
+    
+    @rtvi.event_handler("on_client_message")
+    async def on_client_message(rtvi, message):
+        """Handle custom messages from the client."""
+        logger.info(f"Received client message: {message}")
+        
+        # Extract message type and data from RTVIClientMessage object
+        msg_type = message.type
+        msg_data = message.data if hasattr(message, 'data') else {}
+        
+        if msg_type == "custom-message":
+            text = msg_data.get("text", "") if isinstance(msg_data, dict) else ""
+            if text:
+                # Process the text message as user input
+                logger.info(f"Processing custom message: {text}")
+                # Send the text as a TranscriptionFrame which will be processed by the context aggregator
+                await task.queue_frames([
+                    StartInterruptionFrame(),
+                    TranscriptionFrame(
+                    text=text,
+                    user_id="text-input",
+                    timestamp="",
+                    ),
+                    StopInterruptionFrame(),
+                ])
+                
+                # Send acknowledgment back to client
+                await rtvi.send_server_message({
+                    "type": "message-received",
+                    "text": f"Received: {text}"
+                })
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
