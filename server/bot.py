@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.audio.turn.smart_turn.base_smart_turn import SmartTurnParams
+from pipecat.audio.turn.smart_turn.local_smart_turn_v2 import LocalSmartTurnAnalyzerV2
 from pipecat.frames.frames import TranscriptionFrame, StartInterruptionFrame, StopInterruptionFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -23,6 +25,9 @@ from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.base_transport import TransportParams
 from pipecat.transports.network.small_webrtc import SmallWebRTCTransport
+from pipecat.runner.types import RunnerArguments
+from pipecat.runner.utils import create_transport
+
 
 load_dotenv()
 
@@ -30,33 +35,9 @@ logger.remove()
 logger.add(sys.stderr, level="DEBUG")
 
 
-async def bot(session_args):
+async def run_bot(transport):
     """Main bot function that creates and runs the pipeline."""
-    
-    # Check if we have a webrtc_connection attribute (SmallWebRTC transport)
-    if not hasattr(session_args, 'webrtc_connection'):
-        logger.error(f"Expected session args with webrtc_connection, got {type(session_args)}")
-        return
-    
-    # Get WebRTC connection from session args
-    webrtc_connection = session_args.webrtc_connection
-    if not webrtc_connection:
-        logger.error("No WebRTC connection provided in session args")
-        return
-
-    # Configure transport parameters with Silero VAD
-    transport_params = TransportParams(
-        audio_in_enabled=True,
-        audio_out_enabled=True,
-        vad_analyzer=SileroVADAnalyzer(),
-    )
-    
-    # Configure SmallWebRTCTransport
-    transport = SmallWebRTCTransport(
-        webrtc_connection=webrtc_connection,
-        params=transport_params,
-    )
-    
+        
     # Create RTVI processor with config
     rtvi = RTVIProcessor(config=RTVIConfig(config=[]))
 
@@ -172,7 +153,34 @@ async def bot(session_args):
     await runner.run(task)
 
 
+async def bot(runner_args: RunnerArguments):
+    """Main bot entry point compatible with standard bot starters, including Pipecat Cloud."""
+
+    transport_params = {
+        "daily": lambda: DailyParams(
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            vad_analyzer=SileroVADAnalyzer(),
+        ),
+        "twilio": lambda: FastAPIWebsocketParams(
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            vad_analyzer=SileroVADAnalyzer(),
+        ),
+        "webrtc": lambda: TransportParams(
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            vad_analyzer=SileroVADAnalyzer(),
+            # turn_analyzer=LocalSmartTurnAnalyzerV2(
+            #     smart_turn_model_path=None, params=SmartTurnParams()
+            # ),
+        ),
+    }
+
+    transport = await create_transport(runner_args, transport_params)
+    await run_bot(transport)
+
 if __name__ == "__main__":
-    # This file is meant to be imported and used with a WebSocket connection
-    # Use main.py to run the server
-    logger.info("This module should be imported, not run directly. Use 'python run.py' to start the server.")
+    from pipecat.runner.run import main
+
+    main()
