@@ -146,13 +146,14 @@ export function MessagesPanel() {
   );
 
   return (
-    <div className="flex-1 bg-gray-800 rounded-lg p-4 mb-4 overflow-y-auto">
-      {messages.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
-          Start a conversation by clicking the button below
-        </div>
-      ) : (
-        <div className="space-y-4">
+    <div className="h-full bg-gray-800 rounded-lg p-4 flex flex-col">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {messages.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">
+            Start a conversation by clicking the button below
+          </div>
+        ) : (
+          <div className="space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -190,6 +191,7 @@ export function MessagesPanel() {
           <div ref={messagesEndRef} />
         </div>
       )}
+      </div>
     </div>
   );
 }
