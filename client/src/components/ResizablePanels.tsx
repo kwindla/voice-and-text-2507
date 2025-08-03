@@ -64,7 +64,7 @@ export function ResizablePanels({
           right: 0,
           height: `${topHeight}%` 
         }} 
-        className="overflow-hidden flex flex-col"
+        className="flex flex-col"
       >
         {topPanel}
       </div>
@@ -99,7 +99,7 @@ export function ResizablePanels({
           right: 0,
           bottom: 0
         }} 
-        className="overflow-hidden flex flex-col"
+        className="flex flex-col"
       >
         {bottomPanel}
       </div>

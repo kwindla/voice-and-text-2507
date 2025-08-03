@@ -11,7 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi",
     "loguru",
-    "pipecat-ai[cartesia,daily,deepgram,openai,silero,webrtc,local-smart-turn]>=0.0.77",
+    "pipecat-ai[cartesia,daily,speechmatics,openai,silero,webrtc,local-smart-turn]>=0.0.77",
     "pydantic",
     "python-dotenv",
     "torch>=2.0.0",

@@ -147,11 +147,11 @@ export function MessagesPanel() {
 
   const formatTimestamp = (date: Date) => {
     return date.toLocaleTimeString('en-US', { 
-      hour12: false,
-      hour: '2-digit',
+      hour12: true,
+      hour: 'numeric',
       minute: '2-digit',
       second: '2-digit'
-    });
+    }).toUpperCase();
   };
 
   return (
@@ -159,7 +159,7 @@ export function MessagesPanel() {
       {/* Terminal header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-green-400">
         <div className="flex items-center gap-3">
-          <h3 className="text-sm font-bold terminal-text terminal-glow tracking-wider">
+          <h3 className="text-sm font-bold terminal-text tracking-wider">
             COMMUNICATION LOG
           </h3>
           <span className="text-xs opacity-50">// ENCRYPTED CHANNEL</span>
@@ -181,37 +181,20 @@ export function MessagesPanel() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-0">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`relative ${
-                  message.role === 'user' ? 'pl-8' : 'pr-8'
-                }`}
+                className="font-mono text-sm"
               >
-                {/* Timestamp and role indicator */}
-                <div className={`flex items-center gap-2 mb-1 text-xs ${
+                <div className={`flex ${
                   message.role === 'user' ? 'text-cyan' : 'text-green-400'
                 }`}>
-                  <span className="opacity-50">[{formatTimestamp(message.timestamp)}]</span>
-                  <span className="font-bold">
-                    {message.role === 'user' ? '> USER:' : '< BOT:'}
+                  <span className="opacity-70">[{formatTimestamp(message.timestamp)}]</span>
+                  <span className="mx-2">
+                    {message.role === 'user' ? ' USR >' : ' BOT <'}
                   </span>
-                </div>
-                
-                {/* Message content */}
-                <div className={`relative p-3 border ${
-                  message.role === 'user' 
-                    ? 'border-cyan bg-cyan/5 text-cyan' 
-                    : 'border-green-400 bg-green-400/5 text-green-400'
-                }`}>
-                  {/* Corner decorations */}
-                  <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-current"></div>
-                  <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-current"></div>
-                  <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-current"></div>
-                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-current"></div>
-                  
-                  <div className="terminal-text text-sm leading-relaxed">
+                  <span className="flex-1">
                     {message.chunks.map((chunk, index) => (
                       <span key={chunk.id} className={
                         message.role === 'user' && !chunk.final ? 'opacity-60' : ''
@@ -223,7 +206,7 @@ export function MessagesPanel() {
                     {message.role === 'user' && !message.chunks[message.chunks.length - 1]?.final && (
                       <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse"></span>
                     )}
-                  </div>
+                  </span>
                 </div>
               </div>
             ))}

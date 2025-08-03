@@ -156,7 +156,7 @@ export function EventsPanel() {
       {/* Terminal header */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-green-400">
         <div className="flex items-center gap-3">
-          <h3 className="text-sm font-bold terminal-text terminal-glow tracking-wider">
+          <h3 className="text-sm font-bold terminal-text tracking-wider">
             SYSTEM EVENT MONITOR
           </h3>
           <span className="text-xs opacity-50">// RTVI PROTOCOL</span>

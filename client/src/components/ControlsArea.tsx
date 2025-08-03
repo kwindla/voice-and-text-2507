@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { usePipecatClient, usePipecatClientTransportState, usePipecatClientMicControl } from "@pipecat-ai/client-react";
+import { useState, useEffect, useCallback } from "react";
+import { RTVIEvent } from "@pipecat-ai/client-js";
+import { usePipecatClient, usePipecatClientTransportState, usePipecatClientMicControl, useRTVIClientEvent } from "@pipecat-ai/client-react";
 
 interface ControlsAreaProps {
   onConnect?: () => void;
@@ -11,6 +12,8 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
   const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   
   const client = usePipecatClient();
   const transportState = usePipecatClientTransportState();
@@ -18,6 +21,36 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
 
   const isConnected = transportState === "ready";
   const isConnecting = transportState === "connecting" || transportState === "initializing";
+  
+  // Listen for user speaking events
+  useRTVIClientEvent(
+    RTVIEvent.UserStartedSpeaking,
+    useCallback(() => {
+      setIsUserSpeaking(true);
+    }, [])
+  );
+
+  useRTVIClientEvent(
+    RTVIEvent.UserStoppedSpeaking,
+    useCallback(() => {
+      setIsUserSpeaking(false);
+    }, [])
+  );
+  
+  // Listen for bot speaking events
+  useRTVIClientEvent(
+    RTVIEvent.BotStartedSpeaking,
+    useCallback(() => {
+      setIsBotSpeaking(true);
+    }, [])
+  );
+
+  useRTVIClientEvent(
+    RTVIEvent.BotStoppedSpeaking,
+    useCallback(() => {
+      setIsBotSpeaking(false);
+    }, [])
+  );
 
   // Get available microphone devices
   useEffect(() => {
@@ -93,7 +126,7 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
     <div className="terminal-box p-4 space-y-4">
       {/* Control Panel Header */}
       <div className="flex items-center justify-between pb-2 border-b border-green-400">
-        <h3 className="text-sm font-bold terminal-text terminal-glow tracking-wider">
+        <h3 className="text-sm font-bold terminal-text tracking-wider">
           CONTROL INTERFACE
         </h3>
         <div className="text-xs opacity-50">
@@ -112,7 +145,7 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
             <select
               value={selectedMicrophone}
               onChange={handleMicrophoneChange}
-              className="w-full terminal-input text-xs"
+              className="w-full terminal-input text-xs appearance-none pr-8"
               disabled={!isConnected}
             >
               {availableMicrophones.map((mic) => (
@@ -198,11 +231,15 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
             <span className="opacity-70">LINK</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`status-indicator ${isConnected && isMicEnabled ? 'active' : ''}`}></span>
+            <span className={`status-indicator ${isUserSpeaking ? 'active' : ''}`} style={{
+              animation: isUserSpeaking ? 'blink-fast 0.3s infinite' : 'none'
+            }}></span>
             <span className="opacity-70">AUDIO</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`status-indicator ${isConnected ? 'active' : ''}`}></span>
+            <span className={`status-indicator ${isBotSpeaking ? 'active' : ''}`} style={{
+              animation: isBotSpeaking ? 'blink-fast 0.3s infinite' : 'none'
+            }}></span>
             <span className="opacity-70">DATA</span>
           </div>
         </div>

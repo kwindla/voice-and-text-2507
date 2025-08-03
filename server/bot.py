@@ -21,7 +21,7 @@ from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
 from pipecat.services.cartesia.tts import CartesiaTTSService
-from pipecat.services.deepgram.stt import DeepgramSTTService
+from pipecat.services.speechmatics.stt import SpeechmaticsSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.base_transport import TransportParams
 from pipecat.transports.network.small_webrtc import SmallWebRTCTransport
@@ -42,14 +42,8 @@ async def run_bot(transport):
     rtvi = RTVIProcessor(config=RTVIConfig(config=[]))
 
     # Initialize STT service
-    stt = DeepgramSTTService(
-        api_key=os.getenv("DEEPGRAM_API_KEY"),
-        model="nova-2",
-        language="en",
-        smartformat=True,
-        encoding="linear16",
-        sample_rate=16000,
-        channels=1,
+    stt = SpeechmaticsSTTService(
+        api_key=os.getenv("SPEECHMATICS_API_KEY"),
     )
 
     # Initialize TTS service

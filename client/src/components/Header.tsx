@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import { usePipecatClientTransportState, useRTVIClientEvent } from "@pipecat-ai/client-react";
 
@@ -7,10 +7,13 @@ interface HeaderProps {
   error?: boolean;
 }
 
-export function Header({ title = "PIPECAT TERMINAL", error }: HeaderProps) {
+export function Header({ title = "PIPECAT // ᓚᘏᗢ // TERMINAL", error }: HeaderProps) {
   const transportState = usePipecatClientTransportState();
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const startTimeRef = useRef<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   
   useRTVIClientEvent(
     RTVIEvent.BotStartedSpeaking,
@@ -89,8 +92,44 @@ export function Header({ title = "PIPECAT TERMINAL", error }: HeaderProps) {
     return { statusText, statusClass };
   };
 
+  // Start/stop timer based on connection state
+  useEffect(() => {
+    const isConnected = transportState === "ready";
+    
+    if (isConnected && !startTimeRef.current) {
+      // Start the timer
+      startTimeRef.current = Date.now();
+      setElapsedTime(0);
+      
+      intervalRef.current = setInterval(() => {
+        if (startTimeRef.current) {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          setElapsedTime(elapsed);
+        }
+      }, 1000);
+    } else if (!isConnected && startTimeRef.current) {
+      // Stop the timer
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      startTimeRef.current = null;
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [transportState]);
+
+  const formatElapsedTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const connectionStatus = getConnectionStatus();
-  const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
 
   return (
     <header className="border-b-2 border-green-400 bg-black relative overflow-hidden">
@@ -103,15 +142,15 @@ export function Header({ title = "PIPECAT TERMINAL", error }: HeaderProps) {
           {/* Top row */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-6">
-              <h1 className="text-2xl font-bold terminal-text terminal-glow tracking-wider">
-                {title} <span className="text-green-300 opacity-70">v2.0</span>
+              <h1 className="text-2xl font-bold terminal-text tracking-wider">
+                {title} <span className="text-green-300 opacity-70"></span>
               </h1>
               <div className="text-xs opacity-70 terminal-text">
                 SYS:AUDIO/COMM MODULE
               </div>
             </div>
             <div className="text-xs terminal-text font-mono">
-              <span className="opacity-50">TIME:</span> <span className="text-green-300">{currentTime}</span>
+              <span className="opacity-50">TIME:</span> <span className="text-green-300">{formatElapsedTime(elapsedTime)}</span>
             </div>
           </div>
           
@@ -130,19 +169,10 @@ export function Header({ title = "PIPECAT TERMINAL", error }: HeaderProps) {
               {getAudioIndicator()}
             </div>
             
-            {/* ASCII decoration */}
-            <div className="text-xs opacity-30 terminal-text font-mono">
-              ◄►─═══─◄►
-            </div>
           </div>
         </div>
       </div>
       
-      {/* Animated data streams */}
-      <div className="absolute top-0 left-10 data-stream" style={{ animationDelay: '0s' }}></div>
-      <div className="absolute top-0 left-20 data-stream" style={{ animationDelay: '0.5s' }}></div>
-      <div className="absolute top-0 right-10 data-stream" style={{ animationDelay: '1s' }}></div>
-      <div className="absolute top-0 right-20 data-stream" style={{ animationDelay: '1.5s' }}></div>
     </header>
   );
 }
