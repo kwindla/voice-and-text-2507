@@ -1,5 +1,4 @@
-import "@fontsource-variable/geist";
-import "@fontsource-variable/geist-mono";
+// Global font is loaded via index.html (IBM Plex Mono)
 
 import { PipecatClientProvider } from "@pipecat-ai/client-react";
 import SimpleVoiceUI from "./SimpleVoiceUI";
@@ -7,7 +6,7 @@ import SimpleVoiceUI from "./SimpleVoiceUI";
 export default function App() {
   // AudioClientHelper provides its own client, so we wrap the app with an empty provider
   return (
-    <PipecatClientProvider>
+    <PipecatClientProvider client={undefined as any}>
       <SimpleVoiceUI />
     </PipecatClientProvider>
   );

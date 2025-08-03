@@ -49,9 +49,9 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   }, [transportState, previousTransportState]);
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-black text-green-400 font-mono flex flex-col terminal-screen">
       <Header error={!!connectionError} />
-      
+
       {/* Main Content */}
       <main className="flex-1 max-w-6xl mx-auto w-full p-4 flex flex-col min-h-0">
         <div className="flex-1 flex flex-col min-h-0">
@@ -63,16 +63,16 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
             minBottomHeight={10}
           />
         </div>
-        
+
         {/* Error Display */}
         {(error || connectionError) && (
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mt-4">
-            <p className="text-red-400 text-sm">{connectionError || error?.message || 'Connection error'}</p>
+          <div className="bg-black border border-red-700 text-red-400 rounded p-4 mt-4 shadow-[0_0_10px_rgba(255,0,0,0.4)]">
+            <p className="text-sm">{connectionError || error?.message || 'Connection error'}</p>
           </div>
         )}
-        
+
         <div className="mt-4">
-          <ControlsArea 
+          <ControlsArea
             onConnect={handleConnect}
             onDisconnect={handleDisconnect}
           />
@@ -83,20 +83,21 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
 }
 
 export default function SimpleVoiceUI() {
+  const AudioHelper: any = AudioClientHelper;
   return (
-    <AudioClientHelper
+    <AudioHelper
       transportType="smallwebrtc"
       connectParams={{
         connectionUrl: "/api/offer",
       }}
     >
-      {({ handleConnect, handleDisconnect, error }) => (
+      {({ handleConnect, handleDisconnect, error }: any) => (
         <VoiceUI
           handleConnect={handleConnect}
           handleDisconnect={handleDisconnect}
-          error={error}
+          error={error as any}
         />
       )}
-    </AudioClientHelper>
+    </AudioHelper>
   );
 }
