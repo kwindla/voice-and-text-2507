@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { AudioClientHelper } from "@pipecat-ai/voice-ui-kit";
+import { AudioClientHelper as AudioClientHelperUntyped } from "@pipecat-ai/voice-ui-kit";
 import { usePipecatClient, usePipecatClientTransportState } from "@pipecat-ai/client-react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import { Header, MessagesPanel, EventsPanel, ControlsArea, ResizablePanels } from "./components";
 
+const AudioClientHelper = AudioClientHelperUntyped as any;
+
 interface VoiceUIProps {
   handleConnect?: () => void;
   handleDisconnect?: () => void;
-  error?: Error | null;
+  error?: string | Error | null;
 }
 
 function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
@@ -49,11 +51,11 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   }, [transportState, previousTransportState]);
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-terminal-dark text-terminal-green">
       <Header error={!!connectionError} />
-      
+
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full p-4 flex flex-col min-h-0">
+      <main className="flex-1 max-w-6xl mx-auto w-full p-4 flex flex-col min-h-0 space-y-4">
         <div className="flex-1 flex flex-col min-h-0">
           <ResizablePanels
             topPanel={<MessagesPanel />}
@@ -63,20 +65,20 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
             minBottomHeight={10}
           />
         </div>
-        
+
         {/* Error Display */}
         {(error || connectionError) && (
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mt-4">
-            <p className="text-red-400 text-sm">{connectionError || error?.message || 'Connection error'}</p>
+          <div className="border border-red-500 bg-red-950/40 p-2 shadow-terminal-glow">
+            <p className="text-red-400 text-sm font-mono">
+              {connectionError || (typeof error === 'string' ? error : error?.message) || 'Connection error'}
+            </p>
           </div>
         )}
-        
-        <div className="mt-4">
-          <ControlsArea 
-            onConnect={handleConnect}
-            onDisconnect={handleDisconnect}
-          />
-        </div>
+
+        <ControlsArea
+          onConnect={handleConnect}
+          onDisconnect={handleDisconnect}
+        />
       </main>
     </div>
   );
@@ -90,11 +92,11 @@ export default function SimpleVoiceUI() {
         connectionUrl: "/api/offer",
       }}
     >
-      {({ handleConnect, handleDisconnect, error }) => (
+      {({ handleConnect, handleDisconnect, error }: any) => (
         <VoiceUI
           handleConnect={handleConnect}
           handleDisconnect={handleDisconnect}
-          error={error}
+          error={error as any}
         />
       )}
     </AudioClientHelper>
