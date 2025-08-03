@@ -49,7 +49,7 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   }, [transportState, previousTransportState]);
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-terminal-black text-terminal-green flex flex-col font-mono">
       <Header error={!!connectionError} />
       
       {/* Main Content */}

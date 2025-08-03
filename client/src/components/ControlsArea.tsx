@@ -90,18 +90,18 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 space-y-4">
+    <div className="bg-terminal-black border border-terminal-green rounded-lg p-4 space-y-4">
       {/* Microphone Controls */}
       <div className="flex gap-4 items-center">
         <div className="flex-1">
-          <label htmlFor="microphone-select" className="block text-sm font-medium text-gray-400 mb-1">
+          <label htmlFor="microphone-select" className="block text-sm font-medium text-terminal-green-dark mb-1">
             Microphone
           </label>
           <select
             id="microphone-select"
             value={selectedMicrophone}
             onChange={handleMicrophoneChange}
-            className="w-full bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-terminal-black border border-terminal-green text-terminal-green rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-terminal-green"
             disabled={!isConnected}
           >
             {availableMicrophones.map((mic) => (
@@ -114,12 +114,12 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
         <button
           onClick={handleToggleMute}
           disabled={!isConnected}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-6 py-2 rounded-lg font-medium transition-colors border ${
             !isConnected
-              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+              ? "border-gray-700 text-gray-500 cursor-not-allowed"
               : !isMicEnabled
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-100"
+              ? "bg-red-600/20 border-red-500 text-red-400 hover:bg-red-600/40"
+              : "border-terminal-green text-terminal-green hover:bg-terminal-green/20"
           }`}
         >
           {!isMicEnabled ? "Unmute" : "Mute"}
@@ -134,16 +134,16 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder={isConnected ? "Type a message to send to the bot..." : "Connect to send messages"}
-          className="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="flex-1 bg-terminal-black border border-terminal-green text-terminal-green rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-terminal-green disabled:opacity-50"
           disabled={!isConnected || isSending}
         />
         <button
           onClick={handleSendMessage}
           disabled={!isConnected || !inputText.trim() || isSending}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+          className={`px-6 py-2 rounded-lg font-medium transition-colors border ${
             !isConnected || !inputText.trim() || isSending
-              ? "bg-gray-700 text-gray-400 cursor-not-allowed opacity-50"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+              ? "border-gray-700 text-gray-500 cursor-not-allowed opacity-50"
+              : "border-terminal-green text-terminal-green hover:bg-terminal-green/20"
           }`}
         >
           {isSending ? "Sending..." : "Send"}
@@ -154,12 +154,12 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
       <button
         onClick={handleConnectionToggle}
         disabled={isConnecting}
-        className={`w-full py-4 rounded-lg font-medium transition-colors ${
+        className={`w-full py-4 rounded-lg font-medium transition-colors border ${
           isConnected
-            ? "bg-red-600 hover:bg-red-700 text-white"
+            ? "bg-red-600/20 border-red-500 text-red-400 hover:bg-red-600/40"
             : isConnecting
-            ? "bg-yellow-600 text-white opacity-75 cursor-wait"
-            : "bg-blue-600 hover:bg-blue-700 text-white"
+            ? "border-yellow-500 text-yellow-400 opacity-75 cursor-wait"
+            : "bg-terminal-green/20 border-terminal-green text-terminal-green hover:bg-terminal-green/40"
         }`}
       >
         {isConnected ? "Disconnect" : isConnecting ? "Connecting..." : "Start Voice Chat"}

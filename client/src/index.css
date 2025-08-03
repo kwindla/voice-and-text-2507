@@ -1,5 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
 @import "@pipecat-ai/voice-ui-kit/styles.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-terminal-black text-terminal-green font-mono;
+  }
+
+  * {
+    text-shadow: 0 0 1px #00FF41, 0 0 2px #00FF41;
+  }
+}

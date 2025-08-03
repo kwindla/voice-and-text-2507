@@ -146,10 +146,10 @@ export function MessagesPanel() {
   );
 
   return (
-    <div className="h-full bg-gray-800 rounded-lg p-4 flex flex-col">
+    <div className="h-full bg-terminal-black border border-terminal-green rounded-lg p-4 flex flex-col">
       <div className="flex-1 overflow-y-auto min-h-0">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-terminal-green-dark py-8">
             Start a conversation by clicking the button below
           </div>
         ) : (
@@ -162,20 +162,18 @@ export function MessagesPanel() {
               }`}
             >
               <div
-                className={`max-w-[70%] rounded-lg p-4 ${
+                className={`max-w-[70%] rounded-lg p-4 border ${
                   message.role === 'user'
-                    ? 'bg-blue-900/50 border border-blue-700'
-                    : 'bg-gray-700 border border-gray-600'
+                    ? 'bg-terminal-green/10 border-terminal-green'
+                    : 'bg-terminal-green-dark/10 border-terminal-green-dark'
                 }`}
               >
                 <div className={`text-xs font-medium mb-1 ${
-                  message.role === 'user' ? 'text-blue-400' : 'text-green-400'
+                  message.role === 'user' ? 'text-terminal-green' : 'text-terminal-green-dark'
                 }`}>
                   {message.role === 'user' ? 'User' : 'Bot'}
                 </div>
-                <div className={`text-sm ${
-                  message.role === 'user' ? 'text-blue-100' : 'text-gray-100'
-                }`}>
+                <div className={`text-sm text-terminal-green`}>
                   {message.chunks.map((chunk, index) => (
                     <span key={chunk.id} className={
                       message.role === 'user' && !chunk.final ? 'italic opacity-70' : ''
