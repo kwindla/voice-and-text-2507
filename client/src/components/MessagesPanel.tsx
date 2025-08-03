@@ -146,51 +146,30 @@ export function MessagesPanel() {
   );
 
   return (
-    <div className="h-full bg-gray-800 rounded-lg p-4 flex flex-col">
-      <div className="flex-1 overflow-y-auto min-h-0">
+    <div className="h-full border border-terminal-green bg-black p-2 flex flex-col shadow-terminal-glow">
+      <div className="flex-1 overflow-y-auto min-h-0 space-y-1 text-sm leading-tight">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            Start a conversation by clicking the button below
+          <div className="text-center opacity-50 py-4">
+            -- NO TRANSMISSIONS --
           </div>
         ) : (
-          <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-[70%] rounded-lg p-4 ${
-                  message.role === 'user'
-                    ? 'bg-blue-900/50 border border-blue-700'
-                    : 'bg-gray-700 border border-gray-600'
-                }`}
-              >
-                <div className={`text-xs font-medium mb-1 ${
-                  message.role === 'user' ? 'text-blue-400' : 'text-green-400'
-                }`}>
-                  {message.role === 'user' ? 'User' : 'Bot'}
-                </div>
-                <div className={`text-sm ${
-                  message.role === 'user' ? 'text-blue-100' : 'text-gray-100'
-                }`}>
-                  {message.chunks.map((chunk, index) => (
-                    <span key={chunk.id} className={
-                      message.role === 'user' && !chunk.final ? 'italic opacity-70' : ''
-                    }>
-                      {chunk.text}
-                      {index < message.chunks.length - 1 ? ' ' : ''}
-                    </span>
-                  ))}
-                </div>
-              </div>
+          messages.map((message) => (
+            <div key={message.id} className="whitespace-pre-wrap">
+              <span className="pr-2 text-terminal-green">
+                [{message.timestamp.toLocaleTimeString()}] {message.role === 'user' ? 'USR>' : 'BOT>'}
+              </span>
+              <span className={message.role === 'user' ? 'text-terminal-green' : 'text-terminal-green/70'}>
+                {message.chunks.map((chunk, index) => (
+                  <span key={chunk.id}>
+                    {chunk.text}
+                    {index < message.chunks.length - 1 ? ' ' : ''}
+                  </span>
+                ))}
+              </span>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      )}
+          ))
+        )}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
