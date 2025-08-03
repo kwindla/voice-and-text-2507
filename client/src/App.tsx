@@ -1,6 +1,3 @@
-import "@fontsource-variable/geist";
-import "@fontsource-variable/geist-mono";
-
 import { PipecatClientProvider } from "@pipecat-ai/client-react";
 import SimpleVoiceUI from "./SimpleVoiceUI";
 
