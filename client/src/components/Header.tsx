@@ -7,11 +7,11 @@ interface HeaderProps {
   error?: boolean;
 }
 
-export function Header({ title = "PIPECAT // TERMINAL", error }: HeaderProps) {
+export function Header({ title = "PIPECAT // ᓚᘏᗢ // TERMINAL", error }: HeaderProps) {
   const transportState = usePipecatClientTransportState();
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
-  
+
   useRTVIClientEvent(
     RTVIEvent.BotStartedSpeaking,
     useCallback(() => {
@@ -19,14 +19,14 @@ export function Header({ title = "PIPECAT // TERMINAL", error }: HeaderProps) {
       setIsUserSpeaking(false);
     }, [])
   );
-  
+
   useRTVIClientEvent(
     RTVIEvent.BotStoppedSpeaking,
     useCallback(() => {
       setIsBotSpeaking(false);
     }, [])
   );
-  
+
   useRTVIClientEvent(
     RTVIEvent.UserStartedSpeaking,
     useCallback(() => {
@@ -34,14 +34,14 @@ export function Header({ title = "PIPECAT // TERMINAL", error }: HeaderProps) {
       setIsBotSpeaking(false);
     }, [])
   );
-  
+
   useRTVIClientEvent(
     RTVIEvent.UserStoppedSpeaking,
     useCallback(() => {
       setIsUserSpeaking(false);
     }, [])
   );
-  
+
   const getSpeakingStateIndicator = () => {
     if (isUserSpeaking) {
       return <span className="animate-pulse">USR ▶</span>;
@@ -55,22 +55,22 @@ export function Header({ title = "PIPECAT // TERMINAL", error }: HeaderProps) {
   const getConnectionStatus = () => {
     const isConnected = transportState === "ready";
     const isConnecting = transportState === "connecting" || transportState === "initializing";
-    
+
     return {
       color: isConnected
         ? "bg-terminal-green"
         : isConnecting
-        ? "bg-yellow-500"
-        : error
-        ? "bg-red-500"
-        : "bg-terminal-green/30",
+          ? "bg-yellow-500"
+          : error
+            ? "bg-red-500"
+            : "bg-terminal-green/30",
       text: isConnected
         ? "CONNECTED"
         : isConnecting
-        ? "CONNECTING"
-        : error
-        ? "ERROR"
-        : "DISCONNECTED",
+          ? "CONNECTING"
+          : error
+            ? "ERROR"
+            : "DISCONNECTED",
     };
   };
 
