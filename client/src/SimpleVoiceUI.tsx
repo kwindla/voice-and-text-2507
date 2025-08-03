@@ -49,29 +49,26 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   }, [transportState, previousTransportState]);
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
-      <Header error={!!connectionError} />
+    <div className="min-h-screen flex flex-col scanlines">
+      <div className="p-4">
+        <Header error={!!connectionError} />
+      </div>
       
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full p-4 flex flex-col min-h-0">
-        <div className="flex-1 flex flex-col min-h-0">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 pb-4 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 gap-4">
           <ResizablePanels
             topPanel={<MessagesPanel />}
             bottomPanel={<EventsPanel />}
-            defaultTopHeight={80}
+            defaultTopHeight={70}
             minTopHeight={10}
             minBottomHeight={10}
           />
-        </div>
-        
-        {/* Error Display */}
-        {(error || connectionError) && (
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mt-4">
-            <p className="text-red-400 text-sm">{connectionError || error?.message || 'Connection error'}</p>
-          </div>
-        )}
-        
-        <div className="mt-4">
+           {(error || connectionError) && (
+            <div className="border-2 border-red-500 p-4">
+              <p className="text-red-500 text-lg">SYSTEM ERROR: {connectionError || error?.message || 'Connection error'}</p>
+            </div>
+          )}
           <ControlsArea 
             onConnect={handleConnect}
             onDisconnect={handleDisconnect}

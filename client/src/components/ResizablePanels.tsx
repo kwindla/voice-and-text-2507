@@ -26,7 +26,6 @@ export function ResizablePanels({
       const containerRect = containerRef.current.getBoundingClientRect();
       const newTopHeight = ((e.clientY - containerRect.top) / containerRect.height) * 100;
       
-      // Enforce min heights
       if (newTopHeight >= minTopHeight && newTopHeight <= (100 - minBottomHeight)) {
         setTopHeight(newTopHeight);
       }
@@ -54,44 +53,27 @@ export function ResizablePanels({
     document.body.style.userSelect = 'none';
   };
 
+  const resizerHeight = 8; // px
+
   return (
-    <div ref={containerRef} className="relative flex-1 h-full">
+    <div ref={containerRef} className="relative flex-1 h-full flex flex-col">
       <div 
-        style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: `${topHeight}%` 
-        }} 
+        style={{ height: `${topHeight}%` }}
         className="overflow-hidden flex flex-col"
       >
         {topPanel}
       </div>
       
       <div
-        style={{ 
-          position: 'absolute',
-          top: `${topHeight}%`,
-          left: 0,
-          right: 0,
-          height: '4px'
-        }}
-        className="bg-gray-700 cursor-row-resize hover:bg-gray-600 transition-colors group z-10"
+        style={{ height: `${resizerHeight}px` }}
+        className="cursor-row-resize group z-10 flex items-center justify-center"
         onMouseDown={handleMouseDown}
       >
-        <div className="absolute inset-x-0 -top-1 -bottom-1" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-gray-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="w-full border-t-2 border-b-2 border-green-400 border-dashed h-2 group-hover:border-solid"></div>
       </div>
       
       <div 
-        style={{ 
-          position: 'absolute',
-          top: `calc(${topHeight}% + 4px)`,
-          left: 0,
-          right: 0,
-          bottom: 0
-        }} 
+        style={{ height: `calc(100% - ${topHeight}% - ${resizerHeight}px)` }}
         className="overflow-hidden flex flex-col"
       >
         {bottomPanel}
