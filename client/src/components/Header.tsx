@@ -8,7 +8,7 @@ interface HeaderProps {
   error?: boolean;
 }
 
-export function Header({ title = "V.O.I.C.E. Interface", error }: HeaderProps) {
+export function Header({ title = "Pipecat Ship Interface", error }: HeaderProps) {
   const transportState = usePipecatClientTransportState();
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
@@ -58,7 +58,7 @@ export function Header({ title = "V.O.I.C.E. Interface", error }: HeaderProps) {
   const getConnectionStatus = () => {
     const isConnected = transportState === "ready";
     const isConnecting = transportState === "connecting" || transportState === "initializing";
-    
+
     let statusText = "OFFLINE";
     if (isConnected) statusText = "ONLINE";
     if (isConnecting) statusText = "LINKING...";
