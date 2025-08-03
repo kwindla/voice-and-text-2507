@@ -83,9 +83,9 @@ export function ResizablePanels({
         <div className="absolute inset-x-0 -top-2 -bottom-2" />
         <div className="h-full flex items-center justify-center">
           <div className="w-full h-0.5 bg-green-400 opacity-50"></div>
-          <div className="absolute left-1/2 -translate-x-1/2 px-4 bg-black">
-            <span className="text-green-400 text-xs terminal-text opacity-70">
-              ◄═══►
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <span className="text-green-400 text-xs terminal-text opacity-70 bg-black/70 px-1 rounded">
+              ▲▼
             </span>
           </div>
         </div>

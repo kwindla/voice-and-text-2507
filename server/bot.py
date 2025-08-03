@@ -27,14 +27,22 @@ from pipecat.transports.base_transport import TransportParams
 from pipecat.transports.network.small_webrtc import SmallWebRTCTransport
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
-
+from pipecat.processors.frame_processor import FrameProcessor
 
 load_dotenv()
 
 logger.remove()
 logger.add(sys.stderr, level="DEBUG")
 
-
+class TranscriptionFrameFixer(FrameProcessor):
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, TranscriptionFrame):
+            if not frame.user_id:
+                frame.user_id = ""
+        await self.push_frame(frame, direction)
+        
+        
 async def run_bot(transport):
     """Main bot function that creates and runs the pipeline."""
         
@@ -44,6 +52,7 @@ async def run_bot(transport):
     # Initialize STT service
     stt = SpeechmaticsSTTService(
         api_key=os.getenv("SPEECHMATICS_API_KEY"),
+        enable_speaker_diarization=True,
     )
 
     # Initialize TTS service
@@ -57,6 +66,8 @@ async def run_bot(transport):
         api_key=os.getenv("OPENAI_API_KEY"),
         model="gpt-4o-mini",
     )
+
+    tf_fixer = TranscriptionFrameFixer()
 
     # System prompt
     messages = [
@@ -74,6 +85,7 @@ async def run_bot(transport):
     pipeline = Pipeline([
         transport.input(),
         stt,
+        tf_fixer,
         rtvi,  # Add RTVI processor for transcription events
         context_aggregator.user(),
         llm,

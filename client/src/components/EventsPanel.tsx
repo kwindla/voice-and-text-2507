@@ -220,9 +220,7 @@ export function EventsPanel() {
                       ▶
                     </button>
                     <div className="flex-1 flex items-start gap-2">
-                      <span className="text-green-600 opacity-50">
-                        [{formatTimestamp(group.events[0].timestamp)} - {formatTimestamp(group.events[group.events.length - 1].timestamp)}]
-                      </span>
+                      <span className="text-green-600 opacity-50">[{formatTimestamp(group.events[0].timestamp)}]</span>
                       <span className={`${eventColor} font-bold`}>{group.type}</span>
                       <span className="text-green-300 opacity-60">
                         ({group.events.length} events)

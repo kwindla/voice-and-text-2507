@@ -75,14 +75,24 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
     };
   }, [selectedMicrophone]);
 
+  // Apply selected microphone when bot is ready
+  useRTVIClientEvent(
+    RTVIEvent.BotReady,
+    useCallback(() => {
+      if (selectedMicrophone && client && client.updateMic) {
+        client.updateMic(selectedMicrophone);
+      }
+    }, [selectedMicrophone, client])
+  );
+
   const handleToggleMute = () => {
     enableMic(!isMicEnabled);
   };
 
   const handleMicrophoneChange = (value: string) => {
     setSelectedMicrophone(value);
-    if (client && client.updateMicrophone) {
-      client.updateMicrophone(value);
+    if (client && client.updateMic && isConnected) {
+      client.updateMic(value);
     }
   };
 
@@ -149,7 +159,7 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
               value: mic.deviceId,
               label: mic.label || `MIC-${mic.deviceId.slice(0, 8)}`
             }))}
-            disabled={!isConnected}
+            disabled={false}
           />
         </div>
 

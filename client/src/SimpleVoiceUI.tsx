@@ -61,7 +61,7 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
           <ResizablePanels
             topPanel={<MessagesPanel />}
             bottomPanel={<EventsPanel />}
-            defaultTopHeight={80}
+            defaultTopHeight={90}
             minTopHeight={10}
             minBottomHeight={10}
           />
