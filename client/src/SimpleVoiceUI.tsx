@@ -55,8 +55,8 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
       </div>
       
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 pb-4 flex flex-col min-h-0">
-        <div className="flex-1 flex flex-col min-h-0 gap-4">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 pb-4 flex flex-col min-h-0 gap-4">
+        <div className="flex-1 flex flex-col min-h-0">
           <ResizablePanels
             topPanel={<MessagesPanel />}
             bottomPanel={<EventsPanel />}
@@ -64,11 +64,13 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
             minTopHeight={10}
             minBottomHeight={10}
           />
-           {(error || connectionError) && (
-            <div className="border-2 border-red-500 p-4">
-              <p className="text-red-500 text-lg">SYSTEM ERROR: {connectionError || error?.message || 'Connection error'}</p>
-            </div>
-          )}
+        </div>
+        {(error || connectionError) && (
+          <div className="border-2 border-red-500 p-4 mt-4">
+            <p className="text-red-500 text-lg">SYSTEM ERROR: {connectionError || error?.message || 'Connection error'}</p>
+          </div>
+        )}
+        <div className="mt-4">
           <ControlsArea 
             onConnect={handleConnect}
             onDisconnect={handleDisconnect}

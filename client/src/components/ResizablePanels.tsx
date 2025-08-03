@@ -56,16 +56,28 @@ export function ResizablePanels({
   const resizerHeight = 8; // px
 
   return (
-    <div ref={containerRef} className="relative flex-1 h-full flex flex-col">
+    <div ref={containerRef} className="relative flex-1 h-full">
       <div 
-        style={{ height: `${topHeight}%` }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: `calc(${topHeight}% - ${resizerHeight / 2}px)`
+        }}
         className="overflow-hidden flex flex-col"
       >
         {topPanel}
       </div>
       
       <div
-        style={{ height: `${resizerHeight}px` }}
+        style={{
+          position: 'absolute',
+          top: `calc(${topHeight}% - ${resizerHeight / 2}px)`,
+          left: 0,
+          right: 0,
+          height: `${resizerHeight}px`
+        }}
         className="cursor-row-resize group z-10 flex items-center justify-center"
         onMouseDown={handleMouseDown}
       >
@@ -73,7 +85,13 @@ export function ResizablePanels({
       </div>
       
       <div 
-        style={{ height: `calc(100% - ${topHeight}% - ${resizerHeight}px)` }}
+        style={{
+          position: 'absolute',
+          top: `calc(${topHeight}% + ${resizerHeight / 2}px)`,
+          left: 0,
+          right: 0,
+          bottom: 0
+        }}
         className="overflow-hidden flex flex-col"
       >
         {bottomPanel}
