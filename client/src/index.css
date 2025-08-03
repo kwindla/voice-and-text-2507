@@ -3,3 +3,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-terminal-black text-terminal-green font-terminal tracking-tight;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,255,102,0.05),
+      rgba(0,255,102,0.05) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    animation: scanline 8s linear infinite;
+  }
+}
+
+@layer components {
+  .terminal-frame {
+    @apply border-2 border-terminal-green p-2 relative;
+  }
+}
+
+@keyframes scanline {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
