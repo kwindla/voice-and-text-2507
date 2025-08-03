@@ -90,80 +90,126 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 space-y-4">
-      {/* Microphone Controls */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1">
-          <label htmlFor="microphone-select" className="block text-sm font-medium text-gray-400 mb-1">
-            Microphone
-          </label>
-          <select
-            id="microphone-select"
-            value={selectedMicrophone}
-            onChange={handleMicrophoneChange}
-            className="w-full bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={!isConnected}
-          >
-            {availableMicrophones.map((mic) => (
-              <option key={mic.deviceId} value={mic.deviceId}>
-                {mic.label || `Microphone ${mic.deviceId.slice(0, 8)}`}
-              </option>
-            ))}
-          </select>
+    <div className="terminal-box p-4 space-y-4">
+      {/* Control Panel Header */}
+      <div className="flex items-center justify-between pb-2 border-b border-green-400">
+        <h3 className="text-sm font-bold terminal-text terminal-glow tracking-wider">
+          CONTROL INTERFACE
+        </h3>
+        <div className="text-xs opacity-50">
+          [AUDIO/TEXT INPUT]
         </div>
-        <button
-          onClick={handleToggleMute}
-          disabled={!isConnected}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            !isConnected
-              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-              : !isMicEnabled
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-100"
-          }`}
-        >
-          {!isMicEnabled ? "Unmute" : "Mute"}
-        </button>
+      </div>
+
+      {/* Audio Controls */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Microphone Selection */}
+        <div className="space-y-2">
+          <label className="text-xs terminal-text opacity-70 uppercase tracking-wider">
+            ► Audio Input Device
+          </label>
+          <div className="relative">
+            <select
+              value={selectedMicrophone}
+              onChange={handleMicrophoneChange}
+              className="w-full terminal-input text-xs"
+              disabled={!isConnected}
+            >
+              {availableMicrophones.map((mic) => (
+                <option key={mic.deviceId} value={mic.deviceId}>
+                  {mic.label || `MIC-${mic.deviceId.slice(0, 8)}`}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-green-400">
+              ▼
+            </div>
+          </div>
+        </div>
+
+        {/* Mute Control */}
+        <div className="space-y-2">
+          <label className="text-xs terminal-text opacity-70 uppercase tracking-wider">
+            ► Audio Control
+          </label>
+          <button
+            onClick={handleToggleMute}
+            disabled={!isConnected}
+            className={`w-full terminal-button text-xs ${
+              !isConnected
+                ? ""
+                : !isMicEnabled
+                ? "border-red-400 text-red-400 hover:bg-red-400 hover:text-black"
+                : "border-green-400 text-green-400"
+            }`}
+          >
+            {!isMicEnabled ? "◉ UNMUTE" : "◉ MUTE"}
+          </button>
+        </div>
       </div>
 
       {/* Text Input */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder={isConnected ? "Type a message to send to the bot..." : "Connect to send messages"}
-          className="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          disabled={!isConnected || isSending}
-        />
+      <div className="space-y-2">
+        <label className="text-xs terminal-text opacity-70 uppercase tracking-wider">
+          ► Text Command Input
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={isConnected ? "ENTER TEXT COMMAND..." : "CONNECT TO ENABLE"}
+            className="flex-1 terminal-input text-xs uppercase"
+            disabled={!isConnected || isSending}
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!isConnected || !inputText.trim() || isSending}
+            className="terminal-button text-xs px-4"
+          >
+            {isSending ? "SENDING..." : "TRANSMIT"}
+          </button>
+        </div>
+      </div>
+
+      {/* Connection Control */}
+      <div className="pt-2">
         <button
-          onClick={handleSendMessage}
-          disabled={!isConnected || !inputText.trim() || isSending}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            !isConnected || !inputText.trim() || isSending
-              ? "bg-gray-700 text-gray-400 cursor-not-allowed opacity-50"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={handleConnectionToggle}
+          disabled={isConnecting}
+          className={`w-full py-3 terminal-button font-bold tracking-wider ${
+            isConnected
+              ? "border-red-400 text-red-400 hover:bg-red-400 hover:text-black"
+              : isConnecting
+              ? "border-yellow-400 text-yellow-400 animate-pulse"
+              : "border-green-400 text-green-400 hover:bg-green-400 hover:text-black"
           }`}
         >
-          {isSending ? "Sending..." : "Send"}
+          {isConnected ? "◄ DISCONNECT ►" : isConnecting ? "◄ ESTABLISHING LINK... ►" : "◄ INITIALIZE CONNECTION ►"}
         </button>
       </div>
 
-      {/* Voice Control Button */}
-      <button
-        onClick={handleConnectionToggle}
-        disabled={isConnecting}
-        className={`w-full py-4 rounded-lg font-medium transition-colors ${
-          isConnected
-            ? "bg-red-600 hover:bg-red-700 text-white"
-            : isConnecting
-            ? "bg-yellow-600 text-white opacity-75 cursor-wait"
-            : "bg-blue-600 hover:bg-blue-700 text-white"
-        }`}
-      >
-        {isConnected ? "Disconnect" : isConnecting ? "Connecting..." : "Start Voice Chat"}
-      </button>
+      {/* Status Indicators */}
+      <div className="flex justify-between pt-2 border-t border-green-400/30">
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <span className={`status-indicator ${isConnected ? 'active' : ''}`}></span>
+            <span className="opacity-70">LINK</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`status-indicator ${isConnected && isMicEnabled ? 'active' : ''}`}></span>
+            <span className="opacity-70">AUDIO</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`status-indicator ${isConnected ? 'active' : ''}`}></span>
+            <span className="opacity-70">DATA</span>
+          </div>
+        </div>
+        <div className="text-xs opacity-50">
+          PROTOCOL: RTVI
+        </div>
+      </div>
     </div>
   );
 }

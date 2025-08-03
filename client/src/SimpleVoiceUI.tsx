@@ -49,11 +49,14 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   }, [transportState, previousTransportState]);
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-black text-green-400 flex flex-col terminal-container">
+      {/* CRT screen effect overlay */}
+      <div className="crt-overlay"></div>
+      
       <Header error={!!connectionError} />
       
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full p-4 flex flex-col min-h-0">
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 flex flex-col min-h-0">
         <div className="flex-1 flex flex-col min-h-0">
           <ResizablePanels
             topPanel={<MessagesPanel />}
@@ -66,8 +69,13 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
         
         {/* Error Display */}
         {(error || connectionError) && (
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mt-4">
-            <p className="text-red-400 text-sm">{connectionError || error?.message || 'Connection error'}</p>
+          <div className="terminal-box border-red-400 bg-red-400/10 p-4 mt-4">
+            <div className="flex items-center gap-3">
+              <span className="text-red-400 text-lg animate-pulse">⚠</span>
+              <p className="text-red-400 text-sm terminal-text uppercase">
+                ERROR: {connectionError || error?.message || 'Connection failure detected'}
+              </p>
+            </div>
           </div>
         )}
         
@@ -78,6 +86,9 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
           />
         </div>
       </main>
+      
+      {/* Terminal scanlines */}
+      <div className="scanlines"></div>
     </div>
   );
 }

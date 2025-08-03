@@ -3,3 +3,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global terminal styles */
+@layer base {
+  body {
+    @apply bg-black text-green-400 font-mono;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  * {
+    @apply selection:bg-green-400 selection:text-black;
+  }
+
+  /* Ensure all text uses the terminal font */
+  input, button, textarea, select {
+    @apply font-mono;
+  }
+}

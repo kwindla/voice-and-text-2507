@@ -145,52 +145,97 @@ export function MessagesPanel() {
     }, [])
   );
 
+  const formatTimestamp = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   return (
-    <div className="h-full bg-gray-800 rounded-lg p-4 flex flex-col">
-      <div className="flex-1 overflow-y-auto min-h-0">
+    <div className="h-full terminal-box p-4 flex flex-col relative">
+      {/* Terminal header */}
+      <div className="flex items-center justify-between mb-3 pb-2 border-b border-green-400">
+        <div className="flex items-center gap-3">
+          <h3 className="text-sm font-bold terminal-text terminal-glow tracking-wider">
+            COMMUNICATION LOG
+          </h3>
+          <span className="text-xs opacity-50">// ENCRYPTED CHANNEL</span>
+        </div>
+        <div className="text-xs terminal-text opacity-50">
+          MSGS: {messages.length}
+        </div>
+      </div>
+      
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto min-h-0 terminal-scrollbar">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            Start a conversation by clicking the button below
+          <div className="text-center py-8">
+            <div className="terminal-text opacity-50 text-sm mb-2">
+              ═══ AWAITING TRANSMISSION ═══
+            </div>
+            <div className="text-xs opacity-30">
+              Initialize voice link to begin communication
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
+            {messages.map((message) => (
               <div
-                className={`max-w-[70%] rounded-lg p-4 ${
-                  message.role === 'user'
-                    ? 'bg-blue-900/50 border border-blue-700'
-                    : 'bg-gray-700 border border-gray-600'
+                key={message.id}
+                className={`relative ${
+                  message.role === 'user' ? 'pl-8' : 'pr-8'
                 }`}
               >
-                <div className={`text-xs font-medium mb-1 ${
-                  message.role === 'user' ? 'text-blue-400' : 'text-green-400'
+                {/* Timestamp and role indicator */}
+                <div className={`flex items-center gap-2 mb-1 text-xs ${
+                  message.role === 'user' ? 'text-cyan' : 'text-green-400'
                 }`}>
-                  {message.role === 'user' ? 'User' : 'Bot'}
+                  <span className="opacity-50">[{formatTimestamp(message.timestamp)}]</span>
+                  <span className="font-bold">
+                    {message.role === 'user' ? '> USER:' : '< BOT:'}
+                  </span>
                 </div>
-                <div className={`text-sm ${
-                  message.role === 'user' ? 'text-blue-100' : 'text-gray-100'
+                
+                {/* Message content */}
+                <div className={`relative p-3 border ${
+                  message.role === 'user' 
+                    ? 'border-cyan bg-cyan/5 text-cyan' 
+                    : 'border-green-400 bg-green-400/5 text-green-400'
                 }`}>
-                  {message.chunks.map((chunk, index) => (
-                    <span key={chunk.id} className={
-                      message.role === 'user' && !chunk.final ? 'italic opacity-70' : ''
-                    }>
-                      {chunk.text}
-                      {index < message.chunks.length - 1 ? ' ' : ''}
-                    </span>
-                  ))}
+                  {/* Corner decorations */}
+                  <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-current"></div>
+                  <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-current"></div>
+                  <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-current"></div>
+                  <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-current"></div>
+                  
+                  <div className="terminal-text text-sm leading-relaxed">
+                    {message.chunks.map((chunk, index) => (
+                      <span key={chunk.id} className={
+                        message.role === 'user' && !chunk.final ? 'opacity-60' : ''
+                      }>
+                        {chunk.text}
+                        {index < message.chunks.length - 1 ? ' ' : ''}
+                      </span>
+                    ))}
+                    {message.role === 'user' && !message.chunks[message.chunks.length - 1]?.final && (
+                      <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse"></span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      )}
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+      
+      {/* Status line */}
+      <div className="mt-3 pt-2 border-t border-green-400/30 text-xs opacity-50 flex justify-between">
+        <span>MODE: VOICE/TEXT</span>
+        <span>BUFFER: OK</span>
       </div>
     </div>
   );

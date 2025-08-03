@@ -75,19 +75,26 @@ export function ResizablePanels({
           top: `${topHeight}%`,
           left: 0,
           right: 0,
-          height: '4px'
+          height: '6px'
         }}
-        className="bg-gray-700 cursor-row-resize hover:bg-gray-600 transition-colors group z-10"
+        className="terminal-divider cursor-row-resize z-10"
         onMouseDown={handleMouseDown}
       >
-        <div className="absolute inset-x-0 -top-1 -bottom-1" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-gray-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute inset-x-0 -top-2 -bottom-2" />
+        <div className="h-full flex items-center justify-center">
+          <div className="w-full h-0.5 bg-green-400 opacity-50"></div>
+          <div className="absolute left-1/2 -translate-x-1/2 px-4 bg-black">
+            <span className="text-green-400 text-xs terminal-text opacity-70">
+              ◄═══►
+            </span>
+          </div>
+        </div>
       </div>
       
       <div 
         style={{ 
           position: 'absolute',
-          top: `calc(${topHeight}% + 4px)`,
+          top: `calc(${topHeight}% + 6px)`,
           left: 0,
           right: 0,
           bottom: 0
