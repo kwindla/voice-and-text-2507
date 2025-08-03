@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
 import { usePipecatClient, usePipecatClientTransportState, usePipecatClientMicControl, useRTVIClientEvent } from "@pipecat-ai/client-react";
+import { TerminalDropdown } from "./TerminalDropdown";
 
 interface ControlsAreaProps {
   onConnect?: () => void;
@@ -78,10 +79,10 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
     enableMic(!isMicEnabled);
   };
 
-  const handleMicrophoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMicrophone(e.target.value);
+  const handleMicrophoneChange = (value: string) => {
+    setSelectedMicrophone(value);
     if (client && client.updateMicrophone) {
-      client.updateMicrophone(e.target.value);
+      client.updateMicrophone(value);
     }
   };
 
@@ -141,23 +142,15 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
           <label className="text-xs terminal-text opacity-70 uppercase tracking-wider">
             ► Audio Input Device
           </label>
-          <div className="relative">
-            <select
-              value={selectedMicrophone}
-              onChange={handleMicrophoneChange}
-              className="w-full terminal-input text-xs appearance-none pr-8"
-              disabled={!isConnected}
-            >
-              {availableMicrophones.map((mic) => (
-                <option key={mic.deviceId} value={mic.deviceId}>
-                  {mic.label || `MIC-${mic.deviceId.slice(0, 8)}`}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-green-400">
-              ▼
-            </div>
-          </div>
+          <TerminalDropdown
+            value={selectedMicrophone}
+            onChange={handleMicrophoneChange}
+            options={availableMicrophones.map((mic) => ({
+              value: mic.deviceId,
+              label: mic.label || `MIC-${mic.deviceId.slice(0, 8)}`
+            }))}
+            disabled={!isConnected}
+          />
         </div>
 
         {/* Mute Control */}
