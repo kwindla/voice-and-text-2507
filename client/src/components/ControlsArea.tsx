@@ -47,8 +47,8 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
 
   const handleMicrophoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedMicrophone(e.target.value);
-    if (client && client.updateMicrophone) {
-      client.updateMicrophone(e.target.value);
+    if (client && (client as any).updateMicrophone) {
+      (client as any).updateMicrophone(e.target.value);
     }
   };
 
@@ -90,18 +90,18 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 space-y-4">
+    <div className="terminal-panel p-4 space-y-4">
       {/* Microphone Controls */}
       <div className="flex gap-4 items-center">
         <div className="flex-1">
-          <label htmlFor="microphone-select" className="block text-sm font-medium text-gray-400 mb-1">
-            Microphone
+          <label htmlFor="microphone-select" className="block text-sm mb-1 text-green-400">
+            MICROPHONE
           </label>
           <select
             id="microphone-select"
             value={selectedMicrophone}
             onChange={handleMicrophoneChange}
-            className="w-full bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-black border border-green-700 text-green-400 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
             disabled={!isConnected}
           >
             {availableMicrophones.map((mic) => (
@@ -114,15 +114,11 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
         <button
           onClick={handleToggleMute}
           disabled={!isConnected}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            !isConnected
-              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-              : !isMicEnabled
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-100"
+          className={`px-6 py-2 border border-green-700 text-green-400 hover:bg-green-900 ${
+            !isConnected ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
-          {!isMicEnabled ? "Unmute" : "Mute"}
+          {!isMicEnabled ? 'UNMUTE' : 'MUTE'}
         </button>
       </div>
 
@@ -133,20 +129,18 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder={isConnected ? "Type a message to send to the bot..." : "Connect to send messages"}
-          className="flex-1 bg-gray-700 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          placeholder={isConnected ? 'TYPE MESSAGE...' : 'CONNECT TO SEND'}
+          className="flex-1 bg-black border border-green-700 text-green-400 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-600 disabled:opacity-50"
           disabled={!isConnected || isSending}
         />
         <button
           onClick={handleSendMessage}
           disabled={!isConnected || !inputText.trim() || isSending}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            !isConnected || !inputText.trim() || isSending
-              ? "bg-gray-700 text-gray-400 cursor-not-allowed opacity-50"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+          className={`px-6 py-2 border border-green-700 text-green-400 hover:bg-green-900 ${
+            !isConnected || !inputText.trim() || isSending ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
-          {isSending ? "Sending..." : "Send"}
+          {isSending ? 'SENDING...' : 'SEND'}
         </button>
       </div>
 
@@ -154,15 +148,9 @@ export function ControlsArea({ onConnect, onDisconnect }: ControlsAreaProps) {
       <button
         onClick={handleConnectionToggle}
         disabled={isConnecting}
-        className={`w-full py-4 rounded-lg font-medium transition-colors ${
-          isConnected
-            ? "bg-red-600 hover:bg-red-700 text-white"
-            : isConnecting
-            ? "bg-yellow-600 text-white opacity-75 cursor-wait"
-            : "bg-blue-600 hover:bg-blue-700 text-white"
-        }`}
+        className={`w-full py-4 border-2 border-green-700 text-green-400 hover:bg-green-900 ${isConnecting ? 'opacity-50 cursor-wait' : ''}`}
       >
-        {isConnected ? "Disconnect" : isConnecting ? "Connecting..." : "Start Voice Chat"}
+        {isConnected ? 'DISCONNECT' : isConnecting ? 'CONNECTING...' : 'START VOICE CHAT'}
       </button>
     </div>
   );
