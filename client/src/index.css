@@ -3,3 +3,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply bg-black text-terminal-green font-mono;
+  position: relative;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0,255,153,0.05) 0px, rgba(0,255,153,0.05) 2px, transparent 2px, transparent 4px),
+    radial-gradient(circle at center, rgba(0,255,153,0.08), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #00ff99;
+}

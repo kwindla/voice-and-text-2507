@@ -6,7 +6,18 @@ export default {
     "./node_modules/@pipecat-ai/voice-ui-kit/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'terminal-green': '#00ff99',
+        'terminal-dark': '#001b00',
+      },
+      fontFamily: {
+        mono: ['"Geist Mono"', 'monospace'],
+      },
+      boxShadow: {
+        'terminal-glow': '0 0 5px rgba(0,255,153,0.7), 0 0 20px rgba(0,255,153,0.5)',
+      },
+    },
   },
   plugins: [],
 };
