@@ -70,18 +70,18 @@ export function ResizablePanels({
       </div>
       
       <div
-        style={{ 
+        style={{
           position: 'absolute',
           top: `${topHeight}%`,
           left: 0,
           right: 0,
           height: '4px'
         }}
-        className="bg-gray-700 cursor-row-resize hover:bg-gray-600 transition-colors group z-10"
+        className="bg-terminal-green cursor-row-resize z-10"
         onMouseDown={handleMouseDown}
       >
         <div className="absolute inset-x-0 -top-1 -bottom-1" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-gray-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-black" />
       </div>
       
       <div 
