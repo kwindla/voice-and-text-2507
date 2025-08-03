@@ -7,7 +7,7 @@ import { Header, MessagesPanel, EventsPanel, ControlsArea, ResizablePanels } fro
 interface VoiceUIProps {
   handleConnect?: () => void;
   handleDisconnect?: () => void;
-  error?: Error | null;
+  error?: Error | string | null;
 }
 
 function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
@@ -49,7 +49,7 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
   }, [transportState, previousTransportState]);
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-black text-terminal-green flex flex-col font-terminal">
       <Header error={!!connectionError} />
       
       {/* Main Content */}
@@ -66,8 +66,10 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
         
         {/* Error Display */}
         {(error || connectionError) && (
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mt-4">
-            <p className="text-red-400 text-sm">{connectionError || error?.message || 'Connection error'}</p>
+          <div className="bg-black border border-red-700 rounded-lg p-4 mt-4">
+            <p className="text-red-500 text-sm">
+              {connectionError || (typeof error === 'string' ? error : error?.message) || 'Connection error'}
+            </p>
           </div>
         )}
         
@@ -84,6 +86,7 @@ function VoiceUI({ handleConnect, handleDisconnect, error }: VoiceUIProps) {
 
 export default function SimpleVoiceUI() {
   return (
+    // @ts-ignore AudioClientHelper types are not compatible with React's typings
     <AudioClientHelper
       transportType="smallwebrtc"
       connectParams={{
