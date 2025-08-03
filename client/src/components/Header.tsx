@@ -46,22 +46,22 @@ export function Header({ title = "ᓚᘏᗢ Pipecat", error }: HeaderProps) {
     if (isUserSpeaking) {
       return (
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-          <span className="text-blue-400">User Speaking...</span>
+          <div className="w-3 h-3 bg-terminal-green rounded-full animate-pulse" />
+          <span>User Speaking...</span>
         </div>
       );
     } else if (isBotSpeaking) {
       return (
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-green-400">Bot Speaking...</span>
+          <div className="w-3 h-3 bg-terminal-green rounded-full animate-pulse" />
+          <span>Bot Speaking...</span>
         </div>
       );
     } else {
       return (
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-gray-600 rounded-full" />
-          <span className="text-gray-500">Ready</span>
+          <div className="w-3 h-3 bg-terminal-green opacity-50 rounded-full" />
+          <span className="opacity-50">Ready</span>
         </div>
       );
     }
@@ -72,17 +72,29 @@ export function Header({ title = "ᓚᘏᗢ Pipecat", error }: HeaderProps) {
     const isConnecting = transportState === "connecting" || transportState === "initializing";
     
     return {
-      color: isConnected ? "bg-green-500" : isConnecting ? "bg-yellow-500" : error ? "bg-red-500" : "bg-gray-600",
-      text: isConnected ? "Connected" : isConnecting ? "Connecting..." : error ? "Error" : "Disconnected"
+      color: isConnected
+        ? "bg-terminal-green"
+        : isConnecting
+        ? "bg-terminal-green opacity-50"
+        : error
+        ? "bg-red-600"
+        : "bg-terminal-green opacity-25",
+      text: isConnected
+        ? "Connected"
+        : isConnecting
+        ? "Connecting..."
+        : error
+        ? "Error"
+        : "Disconnected"
     };
   };
 
   const connectionStatus = getConnectionStatus();
 
   return (
-    <header className="bg-gray-800 border-b border-gray-700 p-4">
+    <header className="bg-black border-b border-terminal-green p-4">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <h1 className="text-2xl font-mono">{title}</h1>
+        <h1 className="text-2xl">{title}</h1>
         <div className="flex items-center gap-4">
           {getSpeakingStateIndicator()}
           <div className="flex items-center gap-2">

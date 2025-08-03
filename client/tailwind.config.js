@@ -6,7 +6,14 @@ export default {
     "./node_modules/@pipecat-ai/voice-ui-kit/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'terminal-green': '#00ff00',
+      },
+      fontFamily: {
+        mono: ['"VT323"', 'monospace'],
+      },
+    },
   },
   plugins: [],
 };
