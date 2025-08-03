@@ -3,3 +3,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-black text-terminal-green font-terminal text-sm;
+    text-shadow: 0 0 2px #00ff7f;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 255, 127, 0.05),
+      rgba(0, 255, 127, 0.05) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  }
+}
+
+.terminal-window {
+  @apply border-2 border-terminal-green p-2 bg-black;
+  box-shadow: 0 0 10px rgba(0, 255, 127, 0.3);
+}

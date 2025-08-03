@@ -133,35 +133,32 @@ export function EventsPanel() {
   const eventGroups = groupEvents(events);
 
   return (
-    <div className="h-full bg-gray-800 rounded-lg p-4 flex flex-col">
-      <h3 className="text-sm font-medium text-gray-400 mb-2 flex-shrink-0">RTVI Events</h3>
-      <div className="flex-1 overflow-y-auto min-h-0 space-y-1 text-xs" style={{ fontFamily: 'Menlo, Monaco, "Courier New", monospace', fontSize: '11px' }}>
+    <div className="h-full terminal-window flex flex-col">
+      <h3 className="text-xs mb-2 flex-shrink-0">:: EVENT LOG</h3>
+      <div className="flex-1 overflow-y-auto min-h-0 space-y-1 text-[11px]">
         {events.length === 0 ? (
-          <div className="text-gray-600">No events yet...</div>
+          <div className="opacity-50">no signals...</div>
         ) : (
           eventGroups.map((group) => {
             const isExpanded = expandedGroups.has(group.id);
             const hasMultiple = group.events.length > 1;
-            
+
             if (!hasMultiple || isExpanded) {
               // Show all events in the group
               return group.events.map((event, index) => (
-                <div key={event.id} className="flex items-center gap-2">
+                <div key={event.id} className="flex items-start gap-2">
                   {hasMultiple && index === 0 && (
                     <button
                       onClick={() => toggleGroup(group.id)}
-                      className="text-gray-500 hover:text-gray-300 transition-colors"
+                      className="px-1 hover:bg-terminal-green hover:text-black"
                     >
                       ▼
                     </button>
                   )}
-                  {(!hasMultiple || index > 0) && <span className="text-gray-700">•</span>}
-                  <div className="flex-1 text-gray-400 truncate">
-                    <span className="text-gray-500">{event.timestamp.toLocaleTimeString()}</span>
-                    {" "}
-                    <span className="text-blue-400">{event.type}</span>:
-                    {" "}
-                    <span className="text-gray-300">
+                  {(!hasMultiple || index > 0) && <span>*</span>}
+                  <div className="flex-1 truncate">
+                    <span>{event.timestamp.toLocaleTimeString()} </span>
+                    <span className="font-bold">{event.type}</span>: <span>
                       {event.data ? JSON.stringify(event.data).slice(0, 100) : "{}"}
                       {event.data && JSON.stringify(event.data).length > 100 ? "..." : ""}
                     </span>
@@ -171,21 +168,19 @@ export function EventsPanel() {
             } else {
               // Show collapsed group
               return (
-                <div key={group.id} className="flex items-center gap-2">
+                <div key={group.id} className="flex items-start gap-2">
                   <button
                     onClick={() => toggleGroup(group.id)}
-                    className="text-gray-500 hover:text-gray-300 transition-colors"
+                    className="px-1 hover:bg-terminal-green hover:text-black"
                   >
                     ▶
                   </button>
-                  <div className="flex-1 text-gray-400">
-                    <span className="text-gray-500">
+                  <div className="flex-1 truncate">
+                    <span>
                       {group.events[0].timestamp.toLocaleTimeString()} - {group.events[group.events.length - 1].timestamp.toLocaleTimeString()}
-                    </span>
-                    {" "}
-                    <span className="text-blue-400">{group.type}</span>
-                    {" "}
-                    <span className="text-gray-300">({group.events.length} events)</span>
+                    </span>{" "}
+                    <span className="font-bold">{group.type}</span>{" "}
+                    <span>({group.events.length} events)</span>
                   </div>
                 </div>
               );

@@ -7,7 +7,7 @@ interface HeaderProps {
   error?: boolean;
 }
 
-export function Header({ title = "ᓚᘏᗢ Pipecat", error }: HeaderProps) {
+export function Header({ title = "PIPECAT TERMINAL", error }: HeaderProps) {
   const transportState = usePipecatClientTransportState();
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
@@ -44,52 +44,35 @@ export function Header({ title = "ᓚᘏᗢ Pipecat", error }: HeaderProps) {
   
   const getSpeakingStateIndicator = () => {
     if (isUserSpeaking) {
-      return (
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-          <span className="text-blue-400">User Speaking...</span>
-        </div>
-      );
+      return <span className="animate-pulse">USR&gt;</span>;
     } else if (isBotSpeaking) {
-      return (
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-green-400">Bot Speaking...</span>
-        </div>
-      );
+      return <span className="animate-pulse">BOT&gt;</span>;
     } else {
-      return (
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-gray-600 rounded-full" />
-          <span className="text-gray-500">Ready</span>
-        </div>
-      );
+      return <span>IDLE&gt;</span>;
     }
   };
 
   const getConnectionStatus = () => {
     const isConnected = transportState === "ready";
     const isConnecting = transportState === "connecting" || transportState === "initializing";
-    
-    return {
-      color: isConnected ? "bg-green-500" : isConnecting ? "bg-yellow-500" : error ? "bg-red-500" : "bg-gray-600",
-      text: isConnected ? "Connected" : isConnecting ? "Connecting..." : error ? "Error" : "Disconnected"
-    };
+
+    return isConnected
+      ? "ONLINE"
+      : isConnecting
+        ? "LINKING"
+        : error
+          ? "ERROR"
+          : "OFFLINE";
   };
 
   const connectionStatus = getConnectionStatus();
 
   return (
-    <header className="bg-gray-800 border-b border-gray-700 p-4">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <h1 className="text-2xl font-mono">{title}</h1>
-        <div className="flex items-center gap-4">
-          {getSpeakingStateIndicator()}
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${connectionStatus.color}`} />
-            <span className="text-sm">{connectionStatus.text}</span>
-          </div>
-        </div>
+    <header className="terminal-window mb-2 flex items-center justify-between">
+      <pre className="tracking-tight text-xl">[{title}]</pre>
+      <div className="flex items-center gap-6 text-sm">
+        <div>{getSpeakingStateIndicator()}</div>
+        <div>STATUS:{connectionStatus}</div>
       </div>
     </header>
   );
