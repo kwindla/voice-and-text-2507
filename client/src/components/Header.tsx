@@ -1,24 +1,25 @@
-import { useState, useCallback, useEffect, useRef } from "react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
-import { usePipecatClientTransportState, useRTVIClientEvent } from "@pipecat-ai/client-react";
+import {
+  usePipecatClientTransportState,
+  useRTVIClientEvent,
+} from "@pipecat-ai/client-react";
+import { useCallback, useState } from "react";
 
 interface HeaderProps {
   title?: string;
   error?: boolean;
 }
 
-export function Header({ title = "PIPECAT // ᓚᘏᗢ // TERMINAL", error }: HeaderProps) {
+export function Header({ title = "PIPECAT // TERMINAL", error }: HeaderProps) {
   const transportState = usePipecatClientTransportState();
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const startTimeRef = useRef<number | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   useRTVIClientEvent(
     RTVIEvent.BotStartedSpeaking,
     useCallback(() => {
       setIsBotSpeaking(true);
+      setIsUserSpeaking(false);
     }, [])
   );
 
@@ -33,6 +34,7 @@ export function Header({ title = "PIPECAT // ᓚᘏᗢ // TERMINAL", error }: He
     RTVIEvent.UserStartedSpeaking,
     useCallback(() => {
       setIsUserSpeaking(true);
+      setIsBotSpeaking(false);
     }, [])
   );
 
@@ -43,136 +45,55 @@ export function Header({ title = "PIPECAT // ᓚᘏᗢ // TERMINAL", error }: He
     }, [])
   );
 
-  const getAudioIndicator = () => {
+  const getSpeakingStateIndicator = () => {
     if (isUserSpeaking) {
-      return (
-        <div className="flex items-center gap-2 text-cyan">
-          <span className="status-indicator active" style={{ background: '#00ffff' }}></span>
-          <span className="terminal-text">USER TRANSMITTING</span>
-        </div>
-      );
+      return <span className="animate-pulse">USR ▶</span>;
     } else if (isBotSpeaking) {
-      return (
-        <div className="flex items-center gap-2 text-green-400">
-          <span className="status-indicator active"></span>
-          <span className="terminal-text">BOT RESPONDING</span>
-        </div>
-      );
+      return <span className="animate-pulse">BOT ▶</span>;
     } else {
-      return (
-        <div className="flex items-center gap-2">
-          <span className="status-indicator" style={{ background: '#00ff4133' }}></span>
-          <span className="terminal-text opacity-50">AUDIO IDLE</span>
-        </div>
-      );
+      return <span>IDLE</span>;
     }
   };
 
   const getConnectionStatus = () => {
     const isConnected = transportState === "ready";
-    const isConnecting = transportState === "connecting" || transportState === "initializing";
-    
-    let statusText = "";
-    let statusClass = "";
-    
-    if (isConnected) {
-      statusText = "LINK ESTABLISHED";
-      statusClass = "text-green-400";
-    } else if (isConnecting) {
-      statusText = "CONNECTING...";
-      statusClass = "text-amber-400";
-    } else if (error) {
-      statusText = "CONNECTION FAILED";
-      statusClass = "text-red-400";
-    } else {
-      statusText = "OFFLINE";
-      statusClass = "text-gray-500";
-    }
-    
-    return { statusText, statusClass };
-  };
+    const isConnecting =
+      transportState === "connecting" || transportState === "initializing";
 
-  // Start/stop timer based on connection state
-  useEffect(() => {
-    const isConnected = transportState === "ready";
-    
-    if (isConnected && !startTimeRef.current) {
-      // Start the timer
-      startTimeRef.current = Date.now();
-      setElapsedTime(0);
-      
-      intervalRef.current = setInterval(() => {
-        if (startTimeRef.current) {
-          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-          setElapsedTime(elapsed);
-        }
-      }, 1000);
-    } else if (!isConnected && startTimeRef.current) {
-      // Stop the timer
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      startTimeRef.current = null;
-    }
-    
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+    return {
+      color: isConnected
+        ? "bg-terminal-green"
+        : isConnecting
+        ? "bg-yellow-500"
+        : error
+        ? "bg-red-500"
+        : "bg-terminal-green/30",
+      text: isConnected
+        ? "CONNECTED"
+        : isConnecting
+        ? "CONNECTING"
+        : error
+        ? "ERROR"
+        : "DISCONNECTED",
     };
-  }, [transportState]);
-
-  const formatElapsedTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const connectionStatus = getConnectionStatus();
 
   return (
-    <header className="border-b-2 border-green-400 bg-black relative overflow-hidden">
-      {/* Grid background */}
-      <div className="absolute inset-0 grid-pattern"></div>
-      
-      {/* Main header content */}
-      <div className="relative z-10 p-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Top row */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-6">
-              <h1 className="text-2xl font-bold terminal-text tracking-wider">
-                {title} <span className="text-green-300 opacity-70"></span>
-              </h1>
-              <div className="text-xs opacity-70 terminal-text">
-                SYS:AUDIO/COMM MODULE
-              </div>
-            </div>
-            <div className="text-xs terminal-text font-mono">
-              <span className="opacity-50">TIME:</span> <span className="text-green-300">{formatElapsedTime(elapsedTime)}</span>
-            </div>
+    <header className="border-b border-terminal-green bg-black shadow-terminal-glow p-2">
+      <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <h1 className="text-xl tracking-widest">{title}</h1>
+        <div className="flex items-center gap-8 text-sm">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-block w-3 h-3 ${connectionStatus.color} shadow-terminal-glow`}
+            ></span>
+            <span className="uppercase">{connectionStatus.text}</span>
           </div>
-          
-          {/* Status row */}
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-8">
-              {/* Connection Status */}
-              <div className="flex items-center gap-2">
-                <span className="terminal-text opacity-50">STATUS:</span>
-                <span className={`terminal-text font-bold ${connectionStatus.statusClass}`}>
-                  [{connectionStatus.statusText}]
-                </span>
-              </div>
-              
-              {/* Audio Status */}
-              {getAudioIndicator()}
-            </div>
-            
-          </div>
+          <div className="uppercase">{getSpeakingStateIndicator()}</div>
         </div>
       </div>
-      
     </header>
   );
 }

@@ -1,11 +1,14 @@
-import { useState, useEffect, useRef } from "react";
 import { RTVIEvent } from "@pipecat-ai/client-js";
-import { usePipecatClient, usePipecatClientTransportState } from "@pipecat-ai/client-react";
+import {
+  usePipecatClient,
+  usePipecatClientTransportState,
+} from "@pipecat-ai/client-react";
+import { useEffect, useRef, useState } from "react";
 
 interface RTVIEventLog {
   id: string;
   type: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
 }
 
@@ -26,16 +29,24 @@ export function EventsPanel() {
 
   // Debug mounting/unmounting
   useEffect(() => {
-    console.log('EventsPanel mounted');
-    return () => console.log('EventsPanel unmounted');
+    console.log("EventsPanel mounted");
+    return () => console.log("EventsPanel unmounted");
   }, []);
 
   // Clear events when starting a new connection (not when it becomes ready)
   useEffect(() => {
-    console.log('Transport state changed:', previousTransportState.current, '->', transportState);
+    console.log(
+      "Transport state changed:",
+      previousTransportState.current,
+      "->",
+      transportState
+    );
     // Clear when we start connecting from a disconnected state
-    if (previousTransportState.current === "disconnected" && transportState === "initializing") {
-      console.log('Clearing events because starting new connection');
+    if (
+      previousTransportState.current === "disconnected" &&
+      transportState === "initializing"
+    ) {
+      console.log("Clearing events because starting new connection");
       setEvents([]);
       setExpandedGroups(new Set());
     }
@@ -59,7 +70,7 @@ export function EventsPanel() {
           id: event.id,
           type: event.type,
           events: [event],
-          isExpanded: expandedGroups.has(event.id)
+          isExpanded: expandedGroups.has(event.id),
         };
         groups.push(currentGroup);
       } else {
@@ -72,7 +83,7 @@ export function EventsPanel() {
   };
 
   const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(groupId)) {
         newSet.delete(groupId);
@@ -87,33 +98,35 @@ export function EventsPanel() {
   useEffect(() => {
     if (!client) return;
 
-    const handleRTVIEvent = (eventType: string, data: any) => {
+    const handleRTVIEvent = (eventType: string, data: unknown) => {
       // Skip localAudioLevel events - they're too frequent and not useful for debugging
-      if (eventType === 'localAudioLevel') {
+      if (eventType === "localAudioLevel") {
         return;
       }
-      
+
       const newEvent: RTVIEventLog = {
         id: Date.now().toString() + Math.random(),
         type: eventType,
         data: data,
         timestamp: new Date(),
       };
-      setEvents(prev => [...prev.slice(-499), newEvent]); // Keep last 500 events
+      setEvents((prev) => [...prev.slice(-499), newEvent]); // Keep last 500 events
     };
 
     // Create handlers for all events in the RTVIEvent enum
-    const eventHandlers: Record<string, (data: any) => void> = {};
-    
+    const eventHandlers: Record<string, (data: unknown) => void> = {};
+
     Object.values(RTVIEvent).forEach((eventName) => {
-      eventHandlers[eventName] = (data: any) => handleRTVIEvent(eventName, data);
+      eventHandlers[eventName] = (data: unknown) =>
+        handleRTVIEvent(eventName, data);
     });
 
     // Subscribe to all events
     Object.entries(eventHandlers).forEach(([event, handler]) => {
       try {
-        client.on(event as any, handler);
+        client.on(event as RTVIEvent, handler);
       } catch (e) {
+        console.error(e);
         console.debug(`Could not subscribe to event: ${event}`);
       }
     });
@@ -122,8 +135,9 @@ export function EventsPanel() {
       // Unsubscribe from all events
       Object.entries(eventHandlers).forEach(([event, handler]) => {
         try {
-          client.off(event as any, handler);
+          client.off(event as RTVIEvent, handler);
         } catch (e) {
+          console.error(e);
           console.debug(`Could not unsubscribe from event: ${event}`);
         }
       });
@@ -131,114 +145,82 @@ export function EventsPanel() {
   }, [client]);
 
   const eventGroups = groupEvents(events);
-  
-  const formatTimestamp = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3
-    });
-  };
-
-  const getEventColor = (type: string) => {
-    if (type.includes('error') || type.includes('Error')) return 'text-red-400';
-    if (type.includes('warning') || type.includes('Warning')) return 'text-amber-400';
-    if (type.includes('bot')) return 'text-green-400';
-    if (type.includes('user')) return 'text-cyan';
-    if (type.includes('transport')) return 'text-yellow-400';
-    return 'text-green-300';
-  };
 
   return (
-    <div className="h-full terminal-box p-4 flex flex-col relative">
-      {/* Terminal header */}
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-green-400">
-        <div className="flex items-center gap-3">
-          <h3 className="text-sm font-bold terminal-text tracking-wider">
-            SYSTEM EVENT MONITOR
-          </h3>
-          <span className="text-xs opacity-50">// RTVI PROTOCOL</span>
-        </div>
-        <div className="text-xs terminal-text opacity-50">
-          EVENTS: {events.length}
-        </div>
-      </div>
-      
-      {/* Events area */}
-      <div className="flex-1 overflow-y-auto min-h-0 terminal-scrollbar font-mono" style={{ fontSize: '11px', lineHeight: '1.4' }}>
+    <div className="h-full border border-terminal-green bg-black p-2 flex flex-col shadow-terminal-glow">
+      <h3 className="text-terminal-green/70 text-xs mb-2 flex-shrink-0">
+        SYSTEM LOG
+      </h3>
+      <div
+        className="flex-1 overflow-y-auto min-h-0 space-y-1 text-[11px] leading-tight"
+        style={{ fontFamily: 'Menlo, Monaco, "Courier New", monospace' }}
+      >
         {events.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="terminal-text opacity-50 text-sm mb-2">
-              ◄ NO EVENTS RECORDED ►
-            </div>
-            <div className="text-xs opacity-30">
-              System events will appear here
-            </div>
-          </div>
+          <div className="opacity-50">-- NO EVENTS --</div>
         ) : (
-          <div className="space-y-0">
-            {eventGroups.map((group) => {
-              const isExpanded = expandedGroups.has(group.id);
-              const hasMultiple = group.events.length > 1;
-              const eventColor = getEventColor(group.type);
-              
-              if (!hasMultiple || isExpanded) {
-                // Show all events in the group
-                return group.events.map((event, index) => (
-                  <div key={event.id} className="flex items-start hover:bg-green-400/5 px-1">
-                    {hasMultiple && index === 0 && (
-                      <button
-                        onClick={() => toggleGroup(group.id)}
-                        className="text-green-400 hover:text-green-300 mr-2 mt-0.5"
-                        style={{ fontSize: '10px' }}
-                      >
-                        ▼
-                      </button>
-                    )}
-                    {(!hasMultiple || index > 0) && <span className="text-green-600 mr-2">│</span>}
-                    <div className="flex-1 flex items-start gap-2">
-                      <span className="text-green-600 opacity-50">[{formatTimestamp(event.timestamp)}]</span>
-                      <span className={`${eventColor} font-bold`}>{event.type}:</span>
-                      <span className="text-green-300 opacity-80 break-all">
-                        {event.data ? JSON.stringify(event.data).slice(0, 100) : "null"}
-                        {event.data && JSON.stringify(event.data).length > 100 ? "..." : ""}
-                      </span>
-                    </div>
-                  </div>
-                ));
-              } else {
-                // Show collapsed group
-                return (
-                  <div key={group.id} className="flex items-start hover:bg-green-400/5 px-1">
+          eventGroups.map((group) => {
+            const isExpanded = expandedGroups.has(group.id);
+            const hasMultiple = group.events.length > 1;
+
+            if (!hasMultiple || isExpanded) {
+              // Show all events in the group
+              return group.events.map((event, index) => (
+                <div key={event.id} className="flex items-start gap-2">
+                  {hasMultiple && index === 0 && (
                     <button
                       onClick={() => toggleGroup(group.id)}
-                      className="text-green-400 hover:text-green-300 mr-2 mt-0.5"
-                      style={{ fontSize: '10px' }}
+                      className="text-terminal-green hover:text-terminal-green/70"
                     >
-                      ▶
+                      ▼
                     </button>
-                    <div className="flex-1 flex items-start gap-2">
-                      <span className="text-green-600 opacity-50">[{formatTimestamp(group.events[0].timestamp)}]</span>
-                      <span className={`${eventColor} font-bold`}>{group.type}</span>
-                      <span className="text-green-300 opacity-60">
-                        ({group.events.length} events)
-                      </span>
-                    </div>
+                  )}
+                  {(!hasMultiple || index > 0) && (
+                    <span className="text-terminal-green/50">•</span>
+                  )}
+                  <div className="flex-1 truncate">
+                    <span className="text-terminal-green/70">
+                      {event.timestamp.toLocaleTimeString()}
+                    </span>{" "}
+                    <span className="text-terminal-green">{event.type}</span>:{" "}
+                    <span className="text-terminal-green/80">
+                      {event.data
+                        ? JSON.stringify(event.data).slice(0, 100)
+                        : "{}"}
+                      {event.data && JSON.stringify(event.data).length > 100
+                        ? "..."
+                        : ""}
+                    </span>
                   </div>
-                );
-              }
-            })}
-            <div ref={eventsEndRef} />
-          </div>
+                </div>
+              ));
+            } else {
+              // Show collapsed group
+              return (
+                <div key={group.id} className="flex items-start gap-2">
+                  <button
+                    onClick={() => toggleGroup(group.id)}
+                    className="text-terminal-green hover:text-terminal-green/70"
+                  >
+                    ▶
+                  </button>
+                  <div className="flex-1 truncate">
+                    <span className="text-terminal-green/70">
+                      {group.events[0].timestamp.toLocaleTimeString()} -{" "}
+                      {group.events[
+                        group.events.length - 1
+                      ].timestamp.toLocaleTimeString()}
+                    </span>{" "}
+                    <span className="text-terminal-green">{group.type}</span>{" "}
+                    <span className="text-terminal-green/80">
+                      ({group.events.length} events)
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+          })
         )}
-      </div>
-      
-      {/* Status line */}
-      <div className="mt-3 pt-2 border-t border-green-400/30 text-xs opacity-50 flex justify-between">
-        <span>MONITOR: ACTIVE</span>
-        <span>FILTER: ALL</span>
+        <div ref={eventsEndRef} />
       </div>
     </div>
   );

@@ -1,6 +1,13 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { RTVIEvent } from "@pipecat-ai/client-js";
-import { useRTVIClientEvent, usePipecatClientTransportState } from "@pipecat-ai/client-react";
+import {
+  RTVIEvent,
+  type BotTTSTextData,
+  type TranscriptData,
+} from "@pipecat-ai/client-js";
+import {
+  usePipecatClientTransportState,
+  useRTVIClientEvent,
+} from "@pipecat-ai/client-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface TranscriptChunk {
   id: string;
@@ -23,7 +30,10 @@ export function MessagesPanel() {
 
   // Clear messages when connection is established
   useEffect(() => {
-    if (previousTransportState.current !== "ready" && transportState === "ready") {
+    if (
+      previousTransportState.current !== "ready" &&
+      transportState === "ready"
+    ) {
       setMessages([]);
     }
     previousTransportState.current = transportState;
@@ -37,9 +47,9 @@ export function MessagesPanel() {
   // Handle user transcripts
   useRTVIClientEvent(
     RTVIEvent.UserTranscript,
-    useCallback((data: any) => {
+    useCallback((data: TranscriptData) => {
       if (data?.text) {
-        setMessages(prev => {
+        setMessages((prev) => {
           const chunkId = Date.now().toString() + Math.random();
           const newChunk: TranscriptChunk = {
             id: chunkId,
@@ -47,24 +57,29 @@ export function MessagesPanel() {
             final: data.final || false,
           };
 
-          if (prev.length === 0 || prev[prev.length - 1].role !== 'user') {
+          if (prev.length === 0 || prev[prev.length - 1].role !== "user") {
             // Create new user message
-            return [...prev, {
-              id: Date.now().toString() + Math.random(),
-              role: 'user',
-              chunks: [newChunk],
-              timestamp: new Date(),
-            }];
+            return [
+              ...prev,
+              {
+                id: Date.now().toString() + Math.random(),
+                role: "user",
+                chunks: [newChunk],
+                timestamp: new Date(),
+              },
+            ];
           }
-          
+
           // Update existing user message
           const updated = [...prev];
           const lastMessage = updated[updated.length - 1];
           const updatedChunks = [...lastMessage.chunks];
-          
+
           // Find if there's a non-final chunk to replace
-          const nonFinalIndex = updatedChunks.findIndex(chunk => !chunk.final);
-          
+          const nonFinalIndex = updatedChunks.findIndex(
+            (chunk) => !chunk.final
+          );
+
           if (nonFinalIndex !== -1) {
             // Replace the non-final chunk
             updatedChunks[nonFinalIndex] = newChunk;
@@ -72,12 +87,12 @@ export function MessagesPanel() {
             // All chunks are final, add new chunk
             updatedChunks.push(newChunk);
           }
-          
+
           updated[updated.length - 1] = {
             ...lastMessage,
             chunks: updatedChunks,
           };
-          
+
           return updated;
         });
       }
@@ -87,9 +102,9 @@ export function MessagesPanel() {
   // Handle bot TTS text
   useRTVIClientEvent(
     RTVIEvent.BotTtsText,
-    useCallback((data: any) => {
+    useCallback((data: BotTTSTextData) => {
       if (data?.text) {
-        setMessages(prev => {
+        setMessages((prev) => {
           const chunkId = Date.now().toString() + Math.random();
           const newChunk: TranscriptChunk = {
             id: chunkId,
@@ -97,26 +112,29 @@ export function MessagesPanel() {
             final: false,
           };
 
-          if (prev.length === 0 || prev[prev.length - 1].role !== 'bot') {
+          if (prev.length === 0 || prev[prev.length - 1].role !== "bot") {
             // Create new bot message
-            return [...prev, {
-              id: Date.now().toString() + Math.random(),
-              role: 'bot',
-              chunks: [newChunk],
-              timestamp: new Date(),
-            }];
+            return [
+              ...prev,
+              {
+                id: Date.now().toString() + Math.random(),
+                role: "bot",
+                chunks: [newChunk],
+                timestamp: new Date(),
+              },
+            ];
           }
-          
+
           // Update existing bot message
           const updated = [...prev];
           const lastMessage = updated[updated.length - 1];
-          
+
           // For bot messages, always append (don't replace)
           updated[updated.length - 1] = {
             ...lastMessage,
             chunks: [...lastMessage.chunks, newChunk],
           };
-          
+
           return updated;
         });
       }
@@ -127,17 +145,20 @@ export function MessagesPanel() {
   useRTVIClientEvent(
     RTVIEvent.BotTtsStopped,
     useCallback(() => {
-      setMessages(prev => {
-        if (prev.length > 0 && prev[prev.length - 1].role === 'bot') {
+      setMessages((prev) => {
+        if (prev.length > 0 && prev[prev.length - 1].role === "bot") {
           const updated = [...prev];
           const lastMessage = updated[updated.length - 1];
-          
+
           // Mark all chunks as final
           updated[updated.length - 1] = {
             ...lastMessage,
-            chunks: lastMessage.chunks.map(chunk => ({ ...chunk, final: true })),
+            chunks: lastMessage.chunks.map((chunk) => ({
+              ...chunk,
+              final: true,
+            })),
           };
-          
+
           return updated;
         }
         return prev;
@@ -145,80 +166,44 @@ export function MessagesPanel() {
     }, [])
   );
 
-  const formatTimestamp = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: true,
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit'
-    }).toUpperCase();
-  };
-
   return (
-    <div className="h-full terminal-box p-4 flex flex-col relative">
-      {/* Terminal header */}
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-green-400">
-        <div className="flex items-center gap-3">
-          <h3 className="text-sm font-bold terminal-text tracking-wider">
-            COMMUNICATION LOG
-          </h3>
-          <span className="text-xs opacity-50">// ENCRYPTED CHANNEL</span>
-        </div>
-        <div className="text-xs terminal-text opacity-50">
-          MSGS: {messages.length}
-        </div>
-      </div>
-      
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto min-h-0 terminal-scrollbar">
+    <div className="h-full border border-terminal-green bg-black p-2 flex flex-col shadow-terminal-glow">
+      <div className="flex-1 overflow-y-auto min-h-0 space-y-1 text-sm leading-tight">
         {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="terminal-text opacity-50 text-sm mb-2">
-              ═══ AWAITING TRANSMISSION ═══
-            </div>
-            <div className="text-xs opacity-30">
-              Initialize voice link to begin communication
-            </div>
+          <div className="text-center opacity-50 py-4">
+            -- NO TRANSMISSIONS --
           </div>
         ) : (
-          <div className="space-y-0">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className="font-mono text-sm"
+          messages.map((message) => (
+            <div key={message.id} className="whitespace-pre-wrap">
+              <span
+                className={`pr-2 ${
+                  message.role === "user"
+                    ? "text-terminal-green"
+                    : "text-terminal-green/70"
+                }`}
               >
-                <div className={`flex ${
-                  message.role === 'user' ? 'text-cyan' : 'text-green-400'
-                }`}>
-                  <span className="opacity-70">[{formatTimestamp(message.timestamp)}]</span>
-                  <span className="mx-2">
-                    {message.role === 'user' ? ' USR >' : ' BOT <'}
+                [{message.timestamp.toLocaleTimeString()}]{" "}
+                {message.role === "user" ? "USR>" : "BOT>"}
+              </span>
+              <span
+                className={
+                  message.role === "user"
+                    ? "text-terminal-green"
+                    : "text-terminal-green/70"
+                }
+              >
+                {message.chunks.map((chunk, index) => (
+                  <span key={chunk.id}>
+                    {chunk.text}
+                    {index < message.chunks.length - 1 ? " " : ""}
                   </span>
-                  <span className="flex-1">
-                    {message.chunks.map((chunk, index) => (
-                      <span key={chunk.id} className={
-                        message.role === 'user' && !chunk.final ? 'opacity-60' : ''
-                      }>
-                        {chunk.text}
-                        {index < message.chunks.length - 1 ? ' ' : ''}
-                      </span>
-                    ))}
-                    {message.role === 'user' && !message.chunks[message.chunks.length - 1]?.final && (
-                      <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse"></span>
-                    )}
-                  </span>
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+                ))}
+              </span>
+            </div>
+          ))
         )}
-      </div>
-      
-      {/* Status line */}
-      <div className="mt-3 pt-2 border-t border-green-400/30 text-xs opacity-50 flex justify-between">
-        <span>MODE: VOICE/TEXT</span>
-        <span>BUFFER: OK</span>
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );

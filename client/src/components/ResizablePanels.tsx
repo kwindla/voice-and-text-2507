@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ResizablePanelsProps {
   topPanel: ReactNode;
@@ -24,82 +25,79 @@ export function ResizablePanels({
       if (!isDragging.current || !containerRef.current) return;
 
       const containerRect = containerRef.current.getBoundingClientRect();
-      const newTopHeight = ((e.clientY - containerRect.top) / containerRect.height) * 100;
-      
+      const newTopHeight =
+        ((e.clientY - containerRect.top) / containerRect.height) * 100;
+
       // Enforce min heights
-      if (newTopHeight >= minTopHeight && newTopHeight <= (100 - minBottomHeight)) {
+      if (
+        newTopHeight >= minTopHeight &&
+        newTopHeight <= 100 - minBottomHeight
+      ) {
         setTopHeight(newTopHeight);
       }
     };
 
     const handleMouseUp = () => {
       isDragging.current = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [minTopHeight, minBottomHeight]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     isDragging.current = true;
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
   };
 
   return (
     <div ref={containerRef} className="relative flex-1 h-full">
-      <div 
-        style={{ 
-          position: 'absolute',
+      <div
+        style={{
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
-          height: `${topHeight}%` 
-        }} 
-        className="flex flex-col"
+          height: `${topHeight}%`,
+        }}
+        className="overflow-hidden flex flex-col"
       >
         {topPanel}
       </div>
-      
+
       <div
-        style={{ 
-          position: 'absolute',
+        style={{
+          position: "absolute",
           top: `${topHeight}%`,
           left: 0,
           right: 0,
-          height: '6px'
+          height: "4px",
         }}
-        className="terminal-divider cursor-row-resize z-10"
+        className="bg-terminal-green/40 cursor-row-resize hover:bg-terminal-green transition-colors group z-10"
         onMouseDown={handleMouseDown}
       >
-        <div className="absolute inset-x-0 -top-2 -bottom-2" />
-        <div className="h-full flex items-center justify-center">
-          <div className="w-full h-0.5 bg-green-400 opacity-50"></div>
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <span className="text-green-400 text-xs terminal-text opacity-70 bg-black/70 px-1 rounded">
-              ▲▼
-            </span>
-          </div>
-        </div>
+        <div className="absolute inset-x-0 -top-1 -bottom-1" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-1 bg-terminal-green rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
-      
-      <div 
-        style={{ 
-          position: 'absolute',
-          top: `calc(${topHeight}% + 6px)`,
+
+      <div
+        style={{
+          position: "absolute",
+          top: `calc(${topHeight}% + 4px)`,
           left: 0,
           right: 0,
-          bottom: 0
-        }} 
-        className="flex flex-col"
+          bottom: 0,
+        }}
+        className="overflow-hidden flex flex-col"
       >
         {bottomPanel}
       </div>
