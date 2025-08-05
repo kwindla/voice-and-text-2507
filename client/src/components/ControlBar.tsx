@@ -1,4 +1,5 @@
-import { usePipecatClient } from "@pipecat-ai/client-react";
+import { RTVIEvent, type TransportState } from "@pipecat-ai/client-js";
+import { usePipecatClient, useRTVIClientEvent } from "@pipecat-ai/client-react";
 import { ConnectButton, UserAudioControl } from "@pipecat-ai/voice-ui-kit";
 import { useState } from "react";
 
@@ -11,9 +12,16 @@ export function ControlBar({
 }) {
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const client = usePipecatClient();
-  const isConnected = client?.connected;
+
+  useRTVIClientEvent(
+    RTVIEvent.TransportStateChanged,
+    (state: TransportState) => {
+      setIsConnected(state === "ready");
+    }
+  );
 
   const handleSendMessage = async () => {
     if (!client || !isConnected || !inputText.trim() || isSending) return;
@@ -57,7 +65,7 @@ export function ControlBar({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder={isConnected ? "TYPE MESSAGE…" : "CONNECT FIRST"}
           className="flex-1 bg-black border border-terminal-green text-terminal-green px-2 py-1 focus:outline-none placeholder-terminal-green/50 disabled:opacity-50"
           disabled={!isConnected || isSending}

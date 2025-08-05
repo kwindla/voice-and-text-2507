@@ -11,6 +11,7 @@
   --vkui-color-primary: var(--color-terminal-green);
   --vkui-color-secondary: var(--color-terminal-green);
   --vkui-color-input: var(--color-terminal-green);
+  --vkui-color-foreground: var(--color-terminal-green);
 }
 
 @theme {
