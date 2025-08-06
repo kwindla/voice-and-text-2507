@@ -1,0 +1,181 @@
+@import "tailwindcss";
+@import "@pipecat-ai/voice-ui-kit/styles";
+
+/* Tailwind Theme */
+@theme {
+  --font-mono: "VT323", "Courier New", "monospace";
+  --color-terminal: #00ff41;
+  --color-terminal-bright: #33ff66;
+  --color-terminal-dim: #00cc33;
+  --color-terminal-dark: #008822;
+  --color-terminal-amber: #ffb000;
+  --color-terminal-red: #ff0040;
+  --color-terminal-cyan: #00ffff;
+  --color-bg: #000000;
+  --color-bg-light: #0a0a0a;
+  --color-terminal-border: #00ff41;
+
+  --shadow-terminal: 0 0 5px var(--color-terminal),
+    inset 0 0 5px rgba(0, 255, 65, 0.1);
+
+  --fx-crt-opacity: 0.1;
+
+  /* Terminal FX */
+  --background-image-grid-pattern: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 19px,
+      color-mix(in srgb, var(--color-terminal-dark) 20%, transparent) 19px,
+      color-mix(in srgb, var(--color-terminal-dark) 20%, transparent) 20px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 19px,
+      color-mix(in srgb, var(--color-terminal-dark) 20%, transparent) 19px,
+      color-mix(in srgb, var(--color-terminal-dark) 20%, transparent) 20px
+    );
+
+  /* Animations */
+  --animate-blink: blink 1s ease-in-out infinite;
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0.3;
+    }
+  }
+}
+
+/* VKUI Theme */
+:root {
+  --vkui-font-sans: var(--font-mono);
+  --vkui-font-mono: var(--font-mono);
+
+  --vkui-color-background: black;
+  --vkui-color-foreground: var(--color-terminal);
+  --vkui-color-primary: var(--color-terminal);
+  --vkui-color-destructive: var(--color-terminal-red);
+  --vkui-color-card: black;
+  --vkui-color-card-foreground: var(--color-terminal);
+  --vkui-color-border: var(--color-terminal);
+
+  --vkui-radius-element: 0;
+  --vkui-radius-panel: 0;
+}
+
+@layer components {
+  .terminal-text {
+    @apply text-terminal tracking-wider;
+  }
+
+  /* ASCII Box Drawing */
+  .terminal-box {
+    border: 1px solid var(--color-terminal);
+    background: rgba(0, 255, 65, 0.02);
+    position: relative;
+    @apply shadow-terminal;
+
+    &:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--color-terminal) 0,
+        var(--color-terminal) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      opacity: var(--fx-crt-opacity);
+      pointer-events: none;
+    }
+
+    &.terminal-box-error {
+      @apply text-terminal-red uppercase text-sm shadow-terminal shadow-terminal-red;
+
+      &:before {
+        background: repeating-linear-gradient(
+          90deg,
+          var(--color-terminal-red) 0,
+          var(--color-terminal-red) 2px,
+          transparent 2px,
+          transparent 4px
+        );
+        opacity: var(--fx-crt-opacity);
+      }
+
+      & > * {
+        @apply text-terminal-red;
+      }
+    }
+  }
+
+  .status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    background: var(--color-terminal-dark);
+
+    &.active {
+      @apply bg-terminal-cyan text-terminal-cyan;
+    }
+
+    &.error {
+      @apply bg-terminal-red text-terminal-red;
+    }
+
+    &.warning {
+      @apply bg-terminal-amber text-terminal-amber;
+    }
+  }
+}
+
+/* CRT overlay effect */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 65, 0.03) 2px,
+    rgba(0, 255, 65, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9997;
+  animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* CRT overlay effect */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9996;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(0, 0, 0, 0.2) 70%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}

@@ -9,13 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "^5.0.0",
-    "@fontsource-variable/geist-mono": "^5.0.0",
+    "@fontsource/vt323": "^5.2.6",
     "@pipecat-ai/client-js": "^1.0.1",
     "@pipecat-ai/client-react": "^1.0.1",
     "@pipecat-ai/daily-transport": "^1.0.0",
     "@pipecat-ai/small-webrtc-transport": "^1.0.0",
-    "@pipecat-ai/voice-ui-kit": "^0.1.1",
+    "@pipecat-ai/voice-ui-kit": "^0.2.0-rc.9",
+    "@tailwindcss/vite": "^4.1.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -23,9 +23,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4",
+    "tailwindcss": "^4.1.11",
     "typescript": "^5.5.3",
     "vite": "^5.3.3"
   }
